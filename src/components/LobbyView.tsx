@@ -337,8 +337,19 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
       </div>
 
       {/* Footer Info */}
-      <div className="text-center text-[11px] text-slate-400/80 font-medium select-none pt-2">
-        Type on keyboard or tap wooden tiles • Press <kbd className="bg-slate-800 px-1 py-0.5 rounded text-[10px] text-slate-300 font-mono">Space</kbd> to shuffle
+      <div className="text-center text-[11px] text-slate-400/80 font-medium select-none pt-2 space-y-1">
+        <div>
+          Type on keyboard or tap wooden tiles • Press <kbd className="bg-slate-800 px-1 py-0.5 rounded text-[10px] text-slate-300 font-mono">Space</kbd> to shuffle
+        </div>
+        <div className="flex items-center justify-center gap-3 text-[10px] text-slate-500">
+          <a href="/terms.html" target="_blank" rel="noreferrer" className="hover:text-slate-300 underline">
+            Terms of Service
+          </a>
+          <span>•</span>
+          <a href="/privacy.html" target="_blank" rel="noreferrer" className="hover:text-slate-300 underline">
+            Privacy Policy
+          </a>
+        </div>
       </div>
     </div>
   );

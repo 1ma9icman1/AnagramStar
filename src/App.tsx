@@ -19,6 +19,7 @@ import {
   getBotFoundWords,
   decodeMatchChallenge,
 } from './utils/discord';
+import { initDiscordSdk } from './utils/discordSdk';
 
 export default function App() {
   // Saved profile & settings
@@ -62,8 +63,17 @@ export default function App() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isDictionaryModalOpen, setIsDictionaryModalOpen] = useState(false);
 
-  // Check URL challenge on mount
+  // Check URL challenge & Initialize Discord SDK on mount
   useEffect(() => {
+    initDiscordSdk().then((res) => {
+      if (res.inDiscord && res.user) {
+        setProfile((prev) => ({
+          ...prev,
+          username: prev.username === 'Player 1' ? res.user!.username : prev.username,
+        }));
+      }
+    });
+
     const challenge = decodeMatchChallenge();
     if (challenge && challenge.root) {
       const root = challenge.root.toUpperCase();
