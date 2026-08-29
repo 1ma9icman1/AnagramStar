@@ -53,3 +53,18 @@ export async function initDiscordSdk(): Promise<{
 export function getDiscordSdk(): DiscordSDK | null {
   return discordSdkInstance;
 }
+
+export async function openDiscordInviteDialog(): Promise<boolean> {
+  if (discordSdkInstance && isInitialized) {
+    try {
+      // Discord SDK built-in invite picker dialog
+      if (discordSdkInstance.commands && typeof (discordSdkInstance.commands as any).openInviteDialog === 'function') {
+        await (discordSdkInstance.commands as any).openInviteDialog();
+        return true;
+      }
+    } catch (err) {
+      console.warn('Discord SDK openInviteDialog failed:', err);
+    }
+  }
+  return false;
+}

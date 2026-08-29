@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Bot, Users, Settings, Trophy, Volume2, VolumeX, Sparkles, Flame, User, Swords, Terminal, Cpu, ShieldAlert, Key } from 'lucide-react';
+import { Play, Bot, Users, Settings, Trophy, Volume2, VolumeX, Sparkles, Flame, User, Swords, Terminal, Cpu, ShieldAlert, Key, MessageSquare, Send } from 'lucide-react';
 import { WoodTile } from './WoodTile';
 import { PlayerProfile, GameSettings, OpponentType } from '../types/game';
 import { DISCORD_BOTS, BotPreset } from '../utils/discord';
@@ -7,9 +7,16 @@ import { DISCORD_BOTS, BotPreset } from '../utils/discord';
 interface LobbyViewProps {
   playerProfile: PlayerProfile;
   settings: GameSettings;
+  incomingChallenge?: {
+    challengerName: string;
+    score: number;
+    wordLength: number;
+  } | null;
   onStartSolo: () => void;
   onStartBotMatch: (bot: BotPreset) => void;
-  onStartPassPlay: () => void;
+  onStartPassPlay: (p1Name?: string, p2Name?: string) => void;
+  onOpenDiscordInvite: () => void;
+  onAcceptIncomingChallenge?: () => void;
   onOpenProfile: () => void;
   onUpdateSettings: (settings: GameSettings) => void;
   onLoadChallenge: (code: string) => void;
@@ -18,9 +25,12 @@ interface LobbyViewProps {
 export const LobbyView: React.FC<LobbyViewProps> = ({
   playerProfile,
   settings,
+  incomingChallenge,
   onStartSolo,
   onStartBotMatch,
   onStartPassPlay,
+  onOpenDiscordInvite,
+  onAcceptIncomingChallenge,
   onOpenProfile,
   onUpdateSettings,
   onLoadChallenge,
@@ -28,6 +38,8 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
   const [activeTab, setActiveTab] = useState<'play' | 'bots' | 'pass_play' | 'settings'>('play');
   const [challengeInput, setChallengeInput] = useState('');
   const [selectedBot, setSelectedBot] = useState<BotPreset>(DISCORD_BOTS[0]);
+  const [p1Callsign, setP1Callsign] = useState(playerProfile.name || 'Neo');
+  const [p2Callsign, setP2Callsign] = useState('Trinity');
 
   const titleLetters = ['M', 'A', 'T', 'R', 'I', 'X', 'C', 'R'];
 
@@ -139,31 +151,74 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
           </button>
         </div>
 
-        {/* Tab 1: Solo Rush */}
+        {/* Incoming Challenge Alert Banner */}
+        {incomingChallenge && (
+          <div className="w-full mb-3 bg-[#002a11] border-2 border-[#00ff66] p-3 rounded-xl shadow-[0_0_25px_rgba(0,255,102,0.4)] animate-pulse flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">⚡</span>
+                <div>
+                  <div className="text-[10px] font-mono font-bold text-emerald-400">INCOMING 1V1 CHALLENGE</div>
+                  <div className="text-xs font-['Orbitron',monospace] font-black text-white">
+                    {incomingChallenge.challengerName}
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-[9px] text-emerald-400 font-mono">TARGET TO BEAT</div>
+                <div className="text-xs font-mono font-black text-[#00ff66]">
+                  {incomingChallenge.score > 0 ? `${incomingChallenge.score.toLocaleString()} BITS` : 'LIVE MATCH'}
+                </div>
+              </div>
+            </div>
+            {onAcceptIncomingChallenge && (
+              <button
+                type="button"
+                onClick={onAcceptIncomingChallenge}
+                className="w-full py-2 bg-[#00ff66] hover:bg-[#55ff99] text-black font-['Orbitron',monospace] font-black text-xs uppercase tracking-wider rounded-lg shadow-[0_0_15px_#00ff66] transition cursor-pointer"
+              >
+                ACCEPT CHALLENGE & CRACK
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Tab 1: Solo Rush & Discord 1v1 Invite */}
         {activeTab === 'play' && (
-          <div className="w-full flex flex-col items-center gap-3">
+          <div className="w-full flex flex-col items-center gap-2.5">
             <button
               id="start-solo-game-button"
               type="button"
               onClick={onStartSolo}
-              className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-600 via-[#00ff66] to-teal-500 hover:from-emerald-400 hover:to-teal-400 active:scale-[0.98] text-black font-black text-base sm:text-lg uppercase font-['Orbitron',monospace] tracking-wider shadow-[0_0_25px_#00ff66] border-2 border-white flex items-center justify-center gap-2 transition cursor-pointer"
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 via-[#00ff66] to-teal-500 hover:from-emerald-400 hover:to-teal-400 active:scale-[0.98] text-black font-black text-sm sm:text-base uppercase font-['Orbitron',monospace] tracking-wider shadow-[0_0_25px_#00ff66] border-2 border-white flex items-center justify-center gap-2 transition cursor-pointer"
             >
-              <Play className="w-5 h-5 fill-black" />
-              <span>JACK IN // CRACK ({settings.roundDuration > 0 ? `${settings.roundDuration}s` : 'ZEN'})</span>
+              <Play className="w-4 h-4 fill-black" />
+              <span>SOLO RUN ({settings.roundDuration > 0 ? `${settings.roundDuration}s` : 'ZEN'})</span>
+            </button>
+
+            {/* Invite Discord Friend Button */}
+            <button
+              id="invite-discord-player-button"
+              type="button"
+              onClick={onOpenDiscordInvite}
+              className="w-full py-3 rounded-xl bg-[#5865F2] hover:bg-[#4752C4] active:scale-[0.98] text-white font-['Orbitron',monospace] font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(88,101,242,0.4)] border border-[#7289da] flex items-center justify-center gap-2 transition cursor-pointer"
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span>INVITE DISCORD FRIEND TO DUEL</span>
             </button>
 
             {/* Join Discord Challenge Link Input */}
-            <div className="w-full bg-black/80 p-3 rounded-xl border border-[#00ff66]/40 mt-1 shadow-[0_0_15px_rgba(0,255,102,0.1)]">
-              <label className="block text-[10px] font-mono font-bold text-emerald-400 mb-1.5 uppercase tracking-wider">
-                INJECT DISCORD SEED CHALLENGE:
+            <div className="w-full bg-black/80 p-2.5 rounded-xl border border-[#00ff66]/40 shadow-[0_0_15px_rgba(0,255,102,0.1)]">
+              <label className="block text-[9px] font-mono font-bold text-emerald-400 mb-1 uppercase tracking-wider">
+                JOIN VIA CHALLENGE CODE OR URL:
               </label>
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={challengeInput}
                   onChange={e => setChallengeInput(e.target.value)}
-                  placeholder="Paste payload URL or hex hash..."
-                  className="flex-1 px-3 py-1.5 bg-[#040e07] border border-[#00ff66]/40 rounded text-xs text-[#00ff66] font-mono focus:outline-hidden focus:border-[#00ff66] shadow-inner"
+                  placeholder="Paste challenge link or code..."
+                  className="flex-1 px-2.5 py-1.5 bg-[#040e07] border border-[#00ff66]/40 rounded text-xs text-[#00ff66] font-mono focus:outline-hidden focus:border-[#00ff66] shadow-inner"
                 />
                 <button
                   type="button"
@@ -173,9 +228,9 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
                     }
                   }}
                   disabled={!challengeInput.trim()}
-                  className="px-3.5 py-1.5 bg-emerald-700 hover:bg-[#00ff66] hover:text-black disabled:opacity-40 text-white font-mono font-bold text-xs rounded transition border border-[#00ff66]/50 cursor-pointer"
+                  className="px-3 py-1.5 bg-emerald-700 hover:bg-[#00ff66] hover:text-black disabled:opacity-40 text-white font-mono font-bold text-xs rounded transition border border-[#00ff66]/50 cursor-pointer"
                 >
-                  DECODE
+                  LOAD
                 </button>
               </div>
             </div>
@@ -223,22 +278,72 @@ export const LobbyView: React.FC<LobbyViewProps> = ({
 
         {/* Tab 3: Pass & Play Showdown */}
         {activeTab === 'pass_play' && (
-          <div className="w-full bg-black/80 p-3.5 rounded-xl border border-[#00ff66]/40 flex flex-col items-center text-center gap-2.5 shadow-[0_0_20px_rgba(0,255,102,0.15)]">
-            <div className="w-12 h-12 rounded-lg bg-emerald-950/80 border border-[#00ff66] flex items-center justify-center text-2xl shadow-[0_0_12px_#00ff66]">
-              ⚔️
+          <div className="w-full bg-black/80 p-3.5 rounded-xl border border-[#00ff66]/40 flex flex-col gap-3 shadow-[0_0_20px_rgba(0,255,102,0.15)] text-left">
+            <div className="flex items-center gap-2 border-b border-[#00ff66]/20 pb-2">
+              <div className="w-9 h-9 rounded-lg bg-emerald-950/80 border border-[#00ff66] flex items-center justify-center text-xl shadow-[0_0_10px_#00ff66]">
+                ⚔️
+              </div>
+              <div>
+                <h4 className="text-xs sm:text-sm font-['Orbitron',monospace] font-black text-[#00ff66]">2-PLAYER HARDWARE DUEL</h4>
+                <p className="text-[10px] text-emerald-400 font-mono">Synchronized Pass & Play Head-to-Head</p>
+              </div>
             </div>
-            <div>
-              <h4 className="text-sm font-['Orbitron',monospace] font-black text-[#00ff66]">DUAL OPERATOR TERMINAL</h4>
-              <p className="text-xs text-emerald-300/80 mt-1 font-mono">
-                Operator 1 attempts a 60s cipher crack. Operator 2 then gets identical seed letters to beat the payload!
-              </p>
+
+            {/* Operator Callsign Inputs */}
+            <div className="grid grid-cols-2 gap-2 font-mono">
+              <div className="bg-[#040e07] p-2 rounded-lg border border-[#00ff66]/30">
+                <label className="block text-[9px] font-bold text-emerald-400 mb-1 uppercase">OPERATOR 1 (P1):</label>
+                <input
+                  type="text"
+                  value={p1Callsign}
+                  onChange={e => setP1Callsign(e.target.value)}
+                  maxLength={14}
+                  className="w-full px-2 py-1 bg-black border border-[#00ff66]/40 rounded text-xs text-[#00ff66] font-bold focus:outline-hidden focus:border-[#00ff66]"
+                  placeholder="Player 1"
+                />
+              </div>
+
+              <div className="bg-[#040e07] p-2 rounded-lg border border-[#00ff66]/30">
+                <label className="block text-[9px] font-bold text-emerald-400 mb-1 uppercase">OPERATOR 2 (P2):</label>
+                <input
+                  type="text"
+                  value={p2Callsign}
+                  onChange={e => setP2Callsign(e.target.value)}
+                  maxLength={14}
+                  className="w-full px-2 py-1 bg-black border border-[#00ff66]/40 rounded text-xs text-[#00ff66] font-bold focus:outline-hidden focus:border-[#00ff66]"
+                  placeholder="Player 2"
+                />
+              </div>
             </div>
+
+            {/* Duel Workflow Description */}
+            <div className="bg-[#021006] p-2 rounded-lg border border-[#00ff66]/20 text-[10px] font-mono text-emerald-300/80 space-y-1">
+              <div className="text-[#00ff66] font-bold flex items-center gap-1">
+                <span>⚡ PROTOCOL SEQUENCE:</span>
+              </div>
+              <p>1. <strong>{p1Callsign || 'P1'}</strong> cracks the 60s anagram cipher first.</p>
+              <p>2. Hardware handoff intermission blinds P1's score.</p>
+              <p>3. <strong>{p2Callsign || 'P2'}</strong> cracks the EXACT same scrambled rack.</p>
+              <p>4. Decrypted results reveal head-to-head winner & words!</p>
+            </div>
+
             <button
-              onClick={onStartPassPlay}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-black font-['Orbitron',monospace] font-black text-xs uppercase tracking-wider shadow-[0_0_15px_#00ff66] border border-white transition cursor-pointer flex items-center justify-center gap-2"
+              id="start-2p-duel-button"
+              type="button"
+              onClick={() => onStartPassPlay(p1Callsign.trim() || 'Operator 1', p2Callsign.trim() || 'Operator 2')}
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-teal-600 via-[#00ff66] to-emerald-600 hover:from-teal-400 hover:to-emerald-400 text-black font-['Orbitron',monospace] font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_20px_#00ff66] border border-white transition cursor-pointer flex items-center justify-center gap-2"
             >
               <Users className="w-4 h-4 text-black" />
-              <span>INITIALIZE 2P DUEL</span>
+              <span>START {p1Callsign.toUpperCase() || 'P1'} vs {p2Callsign.toUpperCase() || 'P2'} DUEL</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onOpenDiscordInvite}
+              className="w-full py-2.5 rounded-xl bg-[#5865F2]/90 hover:bg-[#5865F2] text-white font-mono font-bold text-xs flex items-center justify-center gap-2 border border-[#7289da] shadow-[0_0_12px_rgba(88,101,242,0.3)] transition cursor-pointer"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>REMOTE FRIEND? SEND DISCORD 1V1 INVITE</span>
             </button>
           </div>
         )}

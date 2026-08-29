@@ -10,6 +10,10 @@ interface GameBoardProps {
   scrambledLetters: string;
   playerProfile: PlayerProfile;
   settings: GameSettings;
+  duelTurnInfo?: {
+    currentTurn: 1 | 2;
+    operatorName: string;
+  };
   onRoundComplete: (words: SubmittedWord[], score: number) => void;
   onExitToLobby: () => void;
   initialScore?: number;
@@ -19,6 +23,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   scrambledLetters,
   playerProfile,
   settings,
+  duelTurnInfo,
   onRoundComplete,
   onExitToLobby,
 }) => {
@@ -42,12 +47,29 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const toastTimeoutRef = useRef<number | null>(null);
   const totalSlots = scrambledLetters.length;
 
+  // Stable refs for submittedWords and score to prevent stale closure in interval
+  const submittedWordsRef = useRef<SubmittedWord[]>(submittedWords);
+  const scoreRef = useRef<number>(score);
+  const onRoundCompleteRef = useRef(onRoundComplete);
+
+  useEffect(() => {
+    submittedWordsRef.current = submittedWords;
+  }, [submittedWords]);
+
+  useEffect(() => {
+    scoreRef.current = score;
+  }, [score]);
+
+  useEffect(() => {
+    onRoundCompleteRef.current = onRoundComplete;
+  }, [onRoundComplete]);
+
   // Sound sync
   useEffect(() => {
     sound.enabled = soundEnabled;
   }, [soundEnabled]);
 
-  // Round Timer
+  // Round Timer - runs on a single stable interval
   useEffect(() => {
     if (settings.roundDuration <= 0) return; // Untimed practice mode
 
@@ -56,9 +78,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         if (prev <= 1) {
           clearInterval(interval);
           sound.playGameOver();
-          // Round completed
+          // Round completed with the latest words and score
           setTimeout(() => {
-            onRoundComplete(submittedWords, score);
+            onRoundCompleteRef.current(submittedWordsRef.current, scoreRef.current);
           }, 300);
           return 0;
         }
@@ -71,7 +93,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [settings.roundDuration, submittedWords, score, onRoundComplete]);
+  }, [settings.roundDuration]);
 
   // Format timer as 00:ss or mm:ss
   const formatTime = (secs: number) => {
@@ -238,22 +260,30 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           </button>
         </div>
 
-        {/* Terminal Timer Badge */}
-        {settings.roundDuration > 0 ? (
-          <div
-            id="timer-badge"
-            className={`
-              px-3.5 py-1.5 rounded-lg font-black text-sm sm:text-base tracking-widest font-['Orbitron',monospace] border shadow-[0_0_15px_rgba(0,255,102,0.25)]
-              ${timeLeft <= 10 ? 'bg-rose-950/90 text-rose-300 border-rose-500 animate-pulse shadow-[0_0_20px_#f43f5e]' : 'bg-black/90 text-[#00ff66] border-[#00ff66]/60'}
-            `}
-          >
-            {formatTime(timeLeft)}
-          </div>
-        ) : (
-          <div className="px-3 py-1 rounded-lg font-mono font-bold text-xs bg-black/90 text-[#00ffcc] border border-[#00ffcc]/60 shadow-[0_0_10px_rgba(0,255,204,0.3)]">
-            NEO ZEN
-          </div>
-        )}
+        {/* Terminal Timer Badge or Duel Badge */}
+        <div className="flex items-center gap-2">
+          {duelTurnInfo && (
+            <div className="px-2.5 py-1 rounded-lg font-mono font-bold text-[10px] sm:text-xs bg-[#002a11] text-[#00ff66] border border-[#00ff66] shadow-[0_0_10px_rgba(0,255,102,0.3)] animate-pulse">
+              ⚔️ TURN {duelTurnInfo.currentTurn}/2: {duelTurnInfo.operatorName.toUpperCase()}
+            </div>
+          )}
+
+          {settings.roundDuration > 0 ? (
+            <div
+              id="timer-badge"
+              className={`
+                px-3.5 py-1.5 rounded-lg font-black text-sm sm:text-base tracking-widest font-['Orbitron',monospace] border shadow-[0_0_15px_rgba(0,255,102,0.25)]
+                ${timeLeft <= 10 ? 'bg-rose-950/90 text-rose-300 border-rose-500 animate-pulse shadow-[0_0_20px_#f43f5e]' : 'bg-black/90 text-[#00ff66] border-[#00ff66]/60'}
+              `}
+            >
+              {formatTime(timeLeft)}
+            </div>
+          ) : (
+            <div className="px-3 py-1 rounded-lg font-mono font-bold text-xs bg-black/90 text-[#00ffcc] border border-[#00ffcc]/60 shadow-[0_0_10px_rgba(0,255,204,0.3)]">
+              NEO ZEN
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Cyber HUD Score Banner */}
@@ -263,6 +293,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           score={score}
           avatarEmoji={playerProfile.avatarEmoji}
           avatarBg={playerProfile.avatarColor}
+          playerName={playerProfile.name}
         />
 
         {/* Floating Cyber Toast Notification */}

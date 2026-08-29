@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Share2, RotateCcw, BookOpen, Check, Copy, Bot, Trophy, ArrowRight, HelpCircle, Terminal, Cpu } from 'lucide-react';
+import { Share2, RotateCcw, BookOpen, Check, Copy, Bot, Trophy, ArrowRight, HelpCircle, Terminal, Cpu, Users, Home } from 'lucide-react';
 import { WoodTile } from './WoodTile';
 import { ScoreBanner } from './ScoreBanner';
 import { SubmittedWord, PlayerProfile, Opponent } from '../types/game';
@@ -12,8 +12,14 @@ interface ResultsViewProps {
   playerScore: number;
   rootWord: string;
   opponent?: Opponent | null;
+  isPassPlay?: boolean;
+  p1Name?: string;
+  p2Name?: string;
   onPlayAgain: () => void;
+  onRematchPassPlay?: () => void;
+  onExitToLobby?: () => void;
   onOpenDictionary: () => void;
+  onOpenDiscordInvite?: () => void;
   onRevealOpponent?: () => void;
 }
 
@@ -23,17 +29,23 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   playerScore,
   rootWord,
   opponent,
+  isPassPlay = false,
+  p1Name = 'Operator 1',
+  p2Name = 'Operator 2',
   onPlayAgain,
+  onRematchPassPlay,
+  onExitToLobby,
   onOpenDictionary,
+  onOpenDiscordInvite,
   onRevealOpponent,
 }) => {
   const [copiedDiscord, setCopiedDiscord] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
-  const [opponentRevealed, setOpponentRevealed] = useState(opponent?.isReady || false);
+  const [opponentRevealed, setOpponentRevealed] = useState(opponent?.isReady || isPassPlay || false);
 
   // Trigger cyber neon matrix confetti if high score or won
   useEffect(() => {
-    if (playerScore >= 1000) {
+    if (playerScore >= 1000 || (isPassPlay && opponent && Math.max(playerScore, opponent.score) >= 500)) {
       try {
         confetti({
           particleCount: 65,
@@ -43,7 +55,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
         });
       } catch {}
     }
-  }, [playerScore]);
+  }, [playerScore, isPassPlay, opponent]);
 
   const handleReveal = () => {
     setOpponentRevealed(true);
@@ -87,12 +99,22 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
       {/* Top action row */}
       <div className="flex items-center justify-between px-2 pt-1 pb-2 border-b border-[#00ff66]/20">
         <div className="flex items-center gap-2">
+          {onExitToLobby && (
+            <button
+              onClick={onExitToLobby}
+              className="flex items-center gap-1.5 text-xs font-mono font-bold bg-black hover:bg-emerald-950 text-emerald-400 px-3 py-1.5 rounded-lg border border-[#00ff66]/40 transition cursor-pointer"
+            >
+              <Home className="w-3.5 h-3.5" />
+              <span>[ LOBBY ]</span>
+            </button>
+          )}
+
           <button
-            onClick={onPlayAgain}
+            onClick={isPassPlay && onRematchPassPlay ? onRematchPassPlay : onPlayAgain}
             className="flex items-center gap-1.5 text-xs font-mono font-bold bg-[#002a11] hover:bg-[#003816] text-[#00ff66] px-3.5 py-1.5 rounded-lg border border-[#00ff66]/60 shadow-[0_0_10px_rgba(0,255,102,0.2)] transition cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>[ REBOOT RUN ]</span>
+            <span>{isPassPlay ? '[ 2P REMATCH ]' : '[ REBOOT RUN ]'}</span>
           </button>
         </div>
 
@@ -101,38 +123,53 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
           <button
             id="view-dictionary-button"
             onClick={onOpenDictionary}
-            className="w-8 h-8 rounded-lg bg-black hover:bg-emerald-950/80 text-[#00ff66] flex items-center justify-center border border-[#00ff66]/40 transition cursor-pointer shadow-[0_0_8px_rgba(0,255,102,0.2)]"
+            className="px-2.5 py-1.5 rounded-lg bg-black hover:bg-emerald-950/80 text-[#00ff66] flex items-center gap-1.5 border border-[#00ff66]/40 transition cursor-pointer shadow-[0_0_8px_rgba(0,255,102,0.2)] text-xs"
             title="Inspect full dictionary payload permutations"
           >
-            <BookOpen className="w-4 h-4" />
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>WORD LIST</span>
           </button>
         </div>
       </div>
 
-      {/* Outcome Banner if opponent is active */}
+      {/* Outcome Banner if opponent or 2P is active */}
       {opponentRevealed && opponent && (
         <div className="my-2 text-center animate-pop-score">
-          {isWin && (
-            <span className="inline-flex items-center gap-1.5 bg-[#003314] text-[#00ff66] border border-[#00ff66] px-4 py-1 rounded font-mono text-xs font-black tracking-wider uppercase shadow-[0_0_15px_#00ff66]">
-              <Trophy className="w-3.5 h-3.5 text-[#00ffcc]" /> [ OVERRIDE SUCCESS: DUEL WON ]
-            </span>
-          )}
-          {isLoss && (
-            <span className="inline-flex items-center gap-1.5 bg-[#3b0808] text-rose-300 border border-rose-500 px-4 py-1 rounded font-mono text-xs font-black tracking-wider uppercase shadow-[0_0_15px_#f43f5e]">
-              [ ACCESS DENIED: {opponent.name.toUpperCase()} PREVAILED ]
-            </span>
-          )}
-          {isTie && (
-            <span className="inline-flex items-center gap-1.5 bg-[#052e16] text-[#00ffcc] border border-[#00ffcc] px-4 py-1 rounded font-mono text-xs font-black tracking-wider uppercase shadow-[0_0_15px_#00ffcc]">
-              [ SYSTEM PARITY: TIED MATCH ]
-            </span>
+          {isPassPlay ? (
+            isWin ? (
+              <span className="inline-flex items-center gap-1.5 bg-[#003314] text-[#00ff66] border border-[#00ff66] px-4 py-1 rounded font-mono text-xs font-black tracking-wider uppercase shadow-[0_0_15px_#00ff66]">
+                <Trophy className="w-3.5 h-3.5 text-[#00ffcc]" /> [ 🏆 {p2Name.toUpperCase()} PREVAILED IN DUEL! ]
+              </span>
+            ) : isLoss ? (
+              <span className="inline-flex items-center gap-1.5 bg-[#003314] text-[#00ff66] border border-[#00ff66] px-4 py-1 rounded font-mono text-xs font-black tracking-wider uppercase shadow-[0_0_15px_#00ff66]">
+                <Trophy className="w-3.5 h-3.5 text-[#00ffcc]" /> [ 🏆 {p1Name.toUpperCase()} PREVAILED IN DUEL! ]
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 bg-[#052e16] text-[#00ffcc] border border-[#00ffcc] px-4 py-1 rounded font-mono text-xs font-black tracking-wider uppercase shadow-[0_0_15px_#00ffcc]">
+                [ 🤝 SYSTEM PARITY: PERFECT TIE MATCH ]
+              </span>
+            )
+          ) : (
+            isWin ? (
+              <span className="inline-flex items-center gap-1.5 bg-[#003314] text-[#00ff66] border border-[#00ff66] px-4 py-1 rounded font-mono text-xs font-black tracking-wider uppercase shadow-[0_0_15px_#00ff66]">
+                <Trophy className="w-3.5 h-3.5 text-[#00ffcc]" /> [ OVERRIDE SUCCESS: DUEL WON ]
+              </span>
+            ) : isLoss ? (
+              <span className="inline-flex items-center gap-1.5 bg-[#3b0808] text-rose-300 border border-rose-500 px-4 py-1 rounded font-mono text-xs font-black tracking-wider uppercase shadow-[0_0_15px_#f43f5e]">
+                [ ACCESS DENIED: {opponent.name.toUpperCase()} PREVAILED ]
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 bg-[#052e16] text-[#00ffcc] border border-[#00ffcc] px-4 py-1 rounded font-mono text-xs font-black tracking-wider uppercase shadow-[0_0_15px_#00ffcc]">
+                [ SYSTEM PARITY: TIED MATCH ]
+              </span>
+            )
           )}
         </div>
       )}
 
       {/* 2-Column Matrix Decrypted Results Layout */}
       <div className="grid grid-cols-2 gap-2 sm:gap-4 flex-1 my-2">
-        {/* Left Column: Player (You) */}
+        {/* Left Column: Player 2 (or You) */}
         <div className="flex flex-col">
           {/* Top Player HUD Banner */}
           <div className="mb-2">
@@ -141,7 +178,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
               score={playerScore}
               avatarEmoji={playerProfile.avatarEmoji}
               avatarBg={playerProfile.avatarColor}
-              playerName="You"
+              playerName={isPassPlay ? p2Name : 'You'}
               compact
             />
           </div>
@@ -181,7 +218,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
           </div>
         </div>
 
-        {/* Right Column: Opponent */}
+        {/* Right Column: Player 1 / Opponent */}
         <div className="flex flex-col">
           {/* Top Opponent Banner */}
           <div className="mb-2">
@@ -190,8 +227,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
               score={opponentRevealed && opponent ? opponent.score : -1}
               avatarEmoji={opponent?.avatarEmoji || (opponentRevealed ? '🤖' : '?')}
               avatarBg={opponent?.avatarUrl || '#052e16'}
-              playerName={opponent?.name || 'Opponent'}
-              isOpponent={!opponentRevealed}
+              playerName={isPassPlay ? p1Name : (opponent?.name || 'Opponent')}
+              isOpponent={!isPassPlay && !opponentRevealed}
               compact
             />
           </div>
@@ -251,7 +288,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
           </button>
         ) : (
           <div className="w-full py-2 rounded-xl bg-black/80 border border-[#00ff66]/40 text-[#00ff66] font-mono font-bold text-xs uppercase tracking-wider text-center">
-            {opponent ? `RUN FINISHED • SEED: ${rootWord}` : 'WAITING FOR OPPONENT..'}
+            {isPassPlay ? `DUEL COMPLETE • SEED: ${rootWord}` : (opponent ? `RUN FINISHED • SEED: ${rootWord}` : 'RUN COMPLETE')}
           </div>
         )}
 
@@ -260,11 +297,11 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
           <button
             id="share-discord-button"
             type="button"
-            onClick={handleCopyDiscord}
+            onClick={onOpenDiscordInvite || handleCopyDiscord}
             className="py-2.5 px-3 rounded-xl bg-[#5865F2] hover:bg-[#4752C4] active:scale-[0.98] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(88,101,242,0.4)] transition cursor-pointer border border-white/20"
           >
             {copiedDiscord ? <Check className="w-4 h-4 text-emerald-300" /> : <Share2 className="w-4 h-4" />}
-            <span>{copiedDiscord ? 'PAYLOAD COPIED!' : 'DISCORD EXPORT'}</span>
+            <span>{copiedDiscord ? 'PAYLOAD COPIED!' : 'INVITE / EXPORT'}</span>
           </button>
 
           <button

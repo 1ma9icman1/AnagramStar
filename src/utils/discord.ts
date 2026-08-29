@@ -90,6 +90,33 @@ export function getBotFoundWords(bot: BotPreset, allValidWords: string[]): Submi
     .sort((a, b) => b.score - a.score || a.word.localeCompare(b.word));
 }
 
+// Generate Discord pre-game invitation text
+export function generateDiscordInviteText(
+  player: PlayerProfile,
+  root: string,
+  wordLength: number
+): string {
+  const lettersEmoji = root
+    .toUpperCase()
+    .split('')
+    .map(ch => `:${ch.toLowerCase()}:`)
+    .join(' ');
+
+  const shareUrl = encodeMatchShareUrl(root, 0, 0, player.name);
+
+  return [
+    `🎮 **MATRIX ANAGRAMS: 1V1 DUEL CHALLENGE** ⚡`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `🕹️ **Host Operator:** **${player.name}**`,
+    `🧩 **Target Seed:** ${wordLength}-Letter Scramble [ ${lettersEmoji} ]`,
+    `⏱️ **Timer:** 60-Second Cipher Decryption`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `👉 **Click the link below to accept the challenge:**`,
+    `🔗 ${shareUrl}`,
+    `\n*Who can extract the highest byte score from the exact same letters?*`,
+  ].join('\n');
+}
+
 // Generate Discord formatted shareable text
 export function generateDiscordShareText(
   player: PlayerProfile,
@@ -119,17 +146,17 @@ export function generateDiscordShareText(
     }
   }
 
-  const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const shareUrl = encodeMatchShareUrl(root, score, words.length, player.name);
 
   return [
     `🟢 **MATRIX CIPHER DECRYPTION DUEL** 🟢`,
-    `━━━━━━━━━━━━━━━━━━━━`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
     `⚡ **Operator:** **${player.name}**`,
     outcomeText,
     bestWordText,
     `💾 **Target Payload:** ${lettersEmoji}`,
-    `━━━━━━━━━━━━━━━━━━━━`,
-    `💻 *Jack into the mainframe and crack this anagram seed:*`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `💻 *Can you beat this score on the exact same scramble?*`,
     `🔗 ${shareUrl}`,
   ]
     .filter(Boolean)
@@ -147,23 +174,32 @@ export function encodeMatchShareUrl(root: string, score: number, wordsCount: num
     t: Date.now(),
   };
   const str = btoa(JSON.stringify(payload));
-  const url = new URL(window.location.href);
+  const url = new URL(window.location.origin + window.location.pathname);
   url.searchParams.set('challenge', str);
   return url.toString();
 }
 
-// Decode challenge from URL
-export function decodeMatchChallenge(): { root: string; score: number; wordsCount: number; playerName: string } | null {
+// Decode challenge from URL or custom string
+export function decodeMatchChallenge(customInput?: string): { root: string; score: number; wordsCount: number; playerName: string } | null {
   if (typeof window === 'undefined') return null;
   try {
-    const url = new URL(window.location.href);
-    const code = url.searchParams.get('challenge');
+    let code = customInput;
+    if (!code) {
+      const url = new URL(window.location.href);
+      code = url.searchParams.get('challenge') || undefined;
+    } else {
+      code = code.trim();
+      if (code.includes('challenge=')) {
+        const url = new URL(code);
+        code = url.searchParams.get('challenge') || undefined;
+      }
+    }
     if (!code) return null;
     const json = JSON.parse(atob(code));
-    if (json.r && typeof json.s === 'number') {
+    if (json.r && typeof json.r === 'string') {
       return {
-        root: json.r,
-        score: json.s,
+        root: json.r.toUpperCase(),
+        score: typeof json.s === 'number' ? json.s : 0,
         wordsCount: json.w || 0,
         playerName: json.p || 'Challenger',
       };
