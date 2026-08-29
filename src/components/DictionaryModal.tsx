@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, CheckCircle2, Circle, Sparkles } from 'lucide-react';
+import { X, CheckCircle2, Circle, Terminal, Cpu } from 'lucide-react';
 import { calculateWordScore } from '../utils/dictionary';
 import { SubmittedWord } from '../types/game';
 
@@ -40,25 +40,25 @@ export const DictionaryModal: React.FC<DictionaryModalProps> = ({
     .sort((a, b) => b - a);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xs font-mono">
       <div
         id="dictionary-modal"
-        className="relative w-full max-w-lg bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-4 sm:p-6 flex flex-col max-h-[90vh] text-slate-100 overflow-hidden"
+        className="relative w-full max-w-lg bg-[#040e07] border-2 border-[#00ff66]/60 rounded-2xl shadow-[0_0_40px_rgba(0,255,102,0.25)] p-4 sm:p-6 flex flex-col max-h-[90vh] text-emerald-100 overflow-hidden"
       >
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="flex items-center justify-between pb-3 border-b border-[#00ff66]/20">
           <div>
-            <h3 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-amber-400" />
-              <span>All Anagrams: <span className="text-amber-400 font-mono tracking-widest">{rootWord}</span></span>
+            <h3 className="text-base sm:text-lg font-['Orbitron',monospace] font-black text-[#00ff66] flex items-center gap-2">
+              <Terminal className="w-4 h-4 text-[#00ff66]" />
+              <span>PAYLOAD DICTIONARY: <span className="text-[#00ffcc] tracking-widest">{rootWord}</span></span>
             </h3>
-            <p className="text-xs text-slate-400">
-              Found {playerWords.length}/{allValidWords.length} words ({pctFound}%) • {playerTotalScore}/{totalScorePossible} pts
+            <p className="text-xs text-emerald-400 font-mono mt-0.5">
+              DECRYPTED: {playerWords.length}/{allValidWords.length} ({pctFound}%) • YIELD: {playerTotalScore}/{totalScorePossible}b
             </p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer"
+            className="w-7 h-7 rounded-lg bg-black hover:bg-emerald-950/80 text-emerald-400 hover:text-white flex items-center justify-center transition border border-[#00ff66]/40 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -71,10 +71,10 @@ export const DictionaryModal: React.FC<DictionaryModalProps> = ({
               key={f}
               onClick={() => setSelectedFilter(f)}
               className={`
-                px-3 py-1 text-xs font-bold rounded-lg uppercase tracking-wider transition cursor-pointer
+                px-3 py-1 text-xs font-bold font-mono rounded-lg uppercase tracking-wider transition cursor-pointer border
                 ${selectedFilter === f
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200'}
+                  ? 'bg-[#00ff66] text-black border-[#00ff66] shadow-[0_0_10px_rgba(0,255,102,0.4)]'
+                  : 'bg-black text-emerald-500 border-[#00ff66]/30 hover:border-[#00ff66]/70'}
               `}
             >
               {f} {f === 'found' ? `(${playerWords.length})` : f === 'missed' ? `(${allValidWords.length - playerWords.length})` : `(${allValidWords.length})`}
@@ -83,7 +83,7 @@ export const DictionaryModal: React.FC<DictionaryModalProps> = ({
         </div>
 
         {/* Word Lists by Length */}
-        <div className="flex-1 overflow-y-auto space-y-4 pr-1 custom-wood-scroll">
+        <div className="flex-1 overflow-y-auto space-y-4 pr-1 custom-matrix-scroll">
           {lengths.map(len => {
             const wordsInLen = grouped[len] || [];
             const filteredWords = wordsInLen.filter(w => {
@@ -97,9 +97,9 @@ export const DictionaryModal: React.FC<DictionaryModalProps> = ({
 
             return (
               <div key={`len-${len}`} className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-400 px-1 border-b border-slate-800/80 pb-1">
-                  <span>{len}-LETTER WORDS (+{calculateWordScore('A'.repeat(len))} pts)</span>
-                  <span className="font-mono">{filteredWords.length} words</span>
+                <div className="flex items-center justify-between text-xs font-bold text-emerald-400 px-1 border-b border-[#00ff66]/20 pb-1">
+                  <span>{len}-BYTE SEQUENCES (+{calculateWordScore('A'.repeat(len))}b)</span>
+                  <span className="font-mono text-emerald-500">{filteredWords.length} entries</span>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
@@ -111,15 +111,15 @@ export const DictionaryModal: React.FC<DictionaryModalProps> = ({
                         className={`
                           flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-bold font-mono border transition
                           ${isFound
-                            ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
-                            : 'bg-slate-800/50 border-slate-700/50 text-slate-300'}
+                            ? 'bg-[#002e12] border-[#00ff66] text-[#00ff66] shadow-[0_0_8px_rgba(0,255,102,0.2)]'
+                            : 'bg-black/70 border-[#00ff66]/20 text-emerald-700'}
                         `}
                       >
                         <span className="tracking-wider">{word}</span>
                         {isFound ? (
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#00ff66] shrink-0" />
                         ) : (
-                          <Circle className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+                          <Circle className="w-3.5 h-3.5 text-emerald-950 shrink-0" />
                         )}
                       </div>
                     );
@@ -131,15 +131,16 @@ export const DictionaryModal: React.FC<DictionaryModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="pt-3 mt-2 border-t border-slate-800 flex justify-end">
+        <div className="pt-3 mt-2 border-t border-[#00ff66]/20 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition cursor-pointer"
+            className="px-4 py-2 bg-[#00ff66] hover:bg-[#55ff99] text-black font-['Orbitron',monospace] text-xs font-bold rounded-lg shadow-[0_0_12px_#00ff66] transition cursor-pointer"
           >
-            Close Dictionary
+            DISMISS
           </button>
         </div>
       </div>
     </div>
   );
 };
+

@@ -248,7 +248,7 @@ export default function App() {
   }, [passPlayState]);
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-2 sm:p-4 md:p-6 bg-[#211b33]">
+    <div className="min-h-screen w-full flex items-center justify-center p-2 sm:p-4 md:p-6 bg-[#020703] font-mono selection:bg-[#00ff66] selection:text-black">
       {/* 1. Lobby View */}
       {gameState === 'lobby' && (
         <LobbyView
@@ -276,21 +276,21 @@ export default function App() {
 
       {/* 3. Pass & Play Intermission */}
       {gameState === 'round_over' && passPlayState.isPassPlay && passPlayState.turn === 2 && (
-        <div className="w-full max-w-md mx-auto min-h-[70vh] flex flex-col items-center justify-center p-6 bg-diamond-pattern rounded-3xl shadow-2xl border-4 border-slate-700/60 text-center select-none">
-          <div className="w-16 h-16 rounded-full bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-3xl mb-4 animate-bounce">
-            🤝
+        <div className="w-full max-w-md mx-auto min-h-[70vh] flex flex-col items-center justify-center p-6 bg-matrix-pattern rounded-2xl shadow-[0_0_40px_rgba(0,255,102,0.25)] border-2 border-[#00ff66]/60 text-center select-none text-emerald-100">
+          <div className="w-16 h-16 rounded-xl bg-black border-2 border-[#00ff66] shadow-[0_0_15px_#00ff66] flex items-center justify-center text-3xl mb-4 animate-bounce">
+            ⚡
           </div>
-          <h2 className="text-2xl font-black text-white">Pass the Screen!</h2>
-          <p className="text-sm text-slate-300 mt-2 max-w-xs">
-            Player 1 finished with <span className="text-amber-300 font-bold">{passPlayState.p1Score.toLocaleString()} pts</span>.
+          <h2 className="text-2xl font-['Orbitron',monospace] font-black text-[#00ff66]">TRANSFER HARDWARE</h2>
+          <p className="text-xs text-emerald-400 mt-2 max-w-xs font-mono">
+            OPERATOR 1 LOGGED <span className="text-[#00ffcc] font-bold">+{passPlayState.p1Score.toLocaleString()} BYTES</span>.
             <br />
-            Hand over to <span className="text-emerald-300 font-bold">Player 2</span> for the same 60s scramble!
+            PASS TERMINAL TO <span className="text-[#00ff66] font-bold">OPERATOR 2</span> FOR SYNCHRONIZED SCRAMBLE OVERRIDE!
           </p>
           <button
             onClick={() => setGameState('playing')}
-            className="mt-6 w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm uppercase tracking-wider shadow-lg transition cursor-pointer"
+            className="mt-6 w-full py-3.5 rounded-xl bg-[#00ff66] hover:bg-[#55ff99] text-black font-['Orbitron',monospace] font-black text-sm uppercase tracking-wider shadow-[0_0_20px_#00ff66] transition cursor-pointer"
           >
-            START PLAYER 2 TURN
+            START OPERATOR 2 SEQUENCE
           </button>
         </div>
       )}

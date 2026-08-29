@@ -16,51 +16,51 @@ export interface BotPreset {
 
 export const DISCORD_BOTS: BotPreset[] = [
   {
-    id: 'wumpus',
-    name: 'Wumpus',
-    avatar: '👾',
-    avatarBg: '#5865F2',
+    id: 'trinity',
+    name: 'Trinity.exe',
+    avatar: '🕶️',
+    avatarBg: '#052e16',
     difficulty: 'Easy',
-    description: 'Casual Discord mascot. Plays relaxed and finds mostly 3-4 letter words.',
-    speedMin: 5000,
-    speedMax: 9000,
-    wordCountRatio: 0.25,
+    description: 'Matrix navigator. Deciphers fast 3-4 character password combos.',
+    speedMin: 4500,
+    speedMax: 8000,
+    wordCountRatio: 0.28,
     preferLongWords: false,
   },
   {
-    id: 'clyde',
-    name: 'Clyde',
-    avatar: '🤖',
-    avatarBg: '#3BA55C',
+    id: 'cypher',
+    name: 'Cypher Daemon',
+    avatar: '💻',
+    avatarBg: '#0f172a',
     difficulty: 'Medium',
-    description: 'Helpful AI bot. Quick at spotting 4-5 letter combos.',
-    speedMin: 3500,
-    speedMax: 6500,
-    wordCountRatio: 0.45,
+    description: 'Subnet crawler. Extracts 4-5 letter cryptograms with lethal speed.',
+    speedMin: 3200,
+    speedMax: 6000,
+    wordCountRatio: 0.50,
     preferLongWords: false,
   },
   {
-    id: 'mee6',
-    name: 'Mee6',
-    avatar: '🛡️',
-    avatarBg: '#FAA61A',
+    id: 'morpheus',
+    name: 'Morpheus AI',
+    avatar: '💊',
+    avatarBg: '#1e1b4b',
     difficulty: 'Hard',
-    description: 'High-level server guardian. Fast typist with high vocabulary.',
-    speedMin: 2200,
-    speedMax: 4500,
-    wordCountRatio: 0.70,
+    description: 'Nebuchadnezzar Captain. Cracks mainframe encryption buffers effortlessly.',
+    speedMin: 2000,
+    speedMax: 4000,
+    wordCountRatio: 0.75,
     preferLongWords: true,
   },
   {
-    id: 'grandmaster',
-    name: 'Word Master AI',
-    avatar: '👑',
-    avatarBg: '#EB459E',
+    id: 'agent_smith',
+    name: 'Agent Smith',
+    avatar: '🕴️',
+    avatarBg: '#450a0a',
     difficulty: 'Master',
-    description: 'Unbeatable dictionary savant. Finds almost every anagram in seconds!',
-    speedMin: 1200,
-    speedMax: 2500,
-    wordCountRatio: 0.92,
+    description: 'System Sentinel. The ultimate firewall algorithm that computes every permutation.',
+    speedMin: 1000,
+    speedMax: 2200,
+    wordCountRatio: 0.94,
     preferLongWords: true,
   },
 ];
@@ -122,14 +122,14 @@ export function generateDiscordShareText(
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
 
   return [
-    `🎮 **GAMEPIGEON ANAGRAMS BATTLE** 🎮`,
+    `🟢 **MATRIX CIPHER DECRYPTION DUEL** 🟢`,
     `━━━━━━━━━━━━━━━━━━━━`,
-    `👤 **Player:** **${player.name}**`,
+    `⚡ **Operator:** **${player.name}**`,
     outcomeText,
     bestWordText,
-    `🔤 **Letters:** ${lettersEmoji}`,
+    `💾 **Target Payload:** ${lettersEmoji}`,
     `━━━━━━━━━━━━━━━━━━━━`,
-    `🔥 *Think you can beat my score? Play the same board here:*`,
+    `💻 *Jack into the mainframe and crack this anagram seed:*`,
     `🔗 ${shareUrl}`,
   ]
     .filter(Boolean)
@@ -174,8 +174,8 @@ export function decodeMatchChallenge(): { root: string; score: number; wordsCoun
   return null;
 }
 
-const STORAGE_KEY_PROFILE = 'gp_anagrams_profile_v1';
-const STORAGE_KEY_SETTINGS = 'gp_anagrams_settings_v1';
+const STORAGE_KEY_PROFILE = 'matrix_anagrams_profile_v2';
+const STORAGE_KEY_SETTINGS = 'matrix_anagrams_settings_v2';
 
 export function loadSavedProfile(): PlayerProfile {
   try {
@@ -183,9 +183,9 @@ export function loadSavedProfile(): PlayerProfile {
     if (data) return JSON.parse(data);
   } catch {}
   return {
-    name: 'You',
-    avatarEmoji: '😎',
-    avatarColor: '#5865F2',
+    name: 'Neo',
+    avatarEmoji: '🕶️',
+    avatarColor: '#052e16',
     gamesPlayed: 0,
     highestScore: 0,
     totalWordsFound: 0,

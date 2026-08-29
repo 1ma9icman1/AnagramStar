@@ -206,57 +206,57 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   return (
     <div
       id="game-board-container"
-      className="relative w-full max-w-md mx-auto min-h-[92vh] sm:min-h-[85vh] flex flex-col justify-between p-4 sm:p-6 bg-diamond-pattern rounded-3xl shadow-2xl border-4 border-slate-700/60 overflow-hidden"
+      className="relative w-full max-w-md mx-auto min-h-[92vh] sm:min-h-[85vh] flex flex-col justify-between p-4 sm:p-6 bg-matrix-pattern rounded-2xl shadow-[0_0_50px_rgba(0,255,102,0.15)] border border-[#00ff66]/50 overflow-hidden text-emerald-100"
     >
-      {/* Top Header Bar */}
-      <div className="flex items-center justify-between w-full pt-1 pb-3 select-none">
-        {/* Shuffle Button */}
+      {/* Top Cyber Header Bar */}
+      <div className="flex items-center justify-between w-full pt-1 pb-3 select-none border-b border-[#00ff66]/20">
+        {/* Shuffle / Rotate Button */}
         <button
           id="shuffle-button"
           type="button"
           onClick={handleShuffle}
-          className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-slate-800/80 hover:bg-slate-700/90 active:scale-95 text-slate-200 flex items-center justify-center shadow-lg border border-slate-600/50 transition-all cursor-pointer group"
-          title="Shuffle letters (Spacebar)"
+          className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-black/80 hover:bg-emerald-950/80 active:scale-95 text-[#00ff66] flex items-center justify-center shadow-[0_0_15px_rgba(0,255,102,0.2)] border border-[#00ff66]/60 transition-all cursor-pointer group"
+          title="Scramble & Re-index letters (Spacebar)"
         >
-          <Shuffle className="w-5 h-5 group-hover:rotate-45 transition-transform duration-200" />
+          <Shuffle className="w-5 h-5 group-hover:rotate-90 text-[#00ff66] transition-transform duration-300" />
         </button>
 
-        {/* Center Pill Handle */}
-        <div className="flex items-center gap-1.5">
+        {/* Center Control Pod */}
+        <div className="flex items-center gap-2">
           <button
             onClick={onExitToLobby}
-            className="text-[11px] font-bold text-slate-300/80 hover:text-white bg-slate-900/40 hover:bg-slate-900/70 px-2.5 py-1 rounded-full border border-slate-700/50 transition cursor-pointer"
+            className="text-[10px] sm:text-[11px] font-mono font-bold text-rose-400 hover:text-white bg-rose-950/40 hover:bg-rose-900/60 px-3 py-1 rounded border border-rose-500/40 transition cursor-pointer"
           >
-            Quit
+            [ ABORT ]
           </button>
           <button
             onClick={() => setSoundEnabled(prev => !prev)}
-            className="w-7 h-7 rounded-full bg-slate-900/40 hover:bg-slate-900/70 flex items-center justify-center text-slate-300/80 border border-slate-700/50 transition cursor-pointer"
-            title="Toggle Sound"
+            className="w-8 h-8 rounded bg-black/60 hover:bg-emerald-950/60 flex items-center justify-center text-emerald-400 border border-[#00ff66]/40 transition cursor-pointer"
+            title="Toggle Audio Feedback"
           >
-            {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5 text-rose-400" />}
+            {soundEnabled ? <Volume2 className="w-4 h-4 text-[#00ff66]" /> : <VolumeX className="w-4 h-4 text-rose-400" />}
           </button>
         </div>
 
-        {/* Timer Pill */}
+        {/* Terminal Timer Badge */}
         {settings.roundDuration > 0 ? (
           <div
             id="timer-badge"
             className={`
-              px-3.5 py-1.5 rounded-full font-black text-sm sm:text-base tracking-wider font-mono shadow-inner border
-              ${timeLeft <= 10 ? 'bg-rose-900/90 text-rose-200 border-rose-500 animate-pulse' : 'bg-slate-900/80 text-blue-300 border-indigo-500/40'}
+              px-3.5 py-1.5 rounded-lg font-black text-sm sm:text-base tracking-widest font-['Orbitron',monospace] border shadow-[0_0_15px_rgba(0,255,102,0.25)]
+              ${timeLeft <= 10 ? 'bg-rose-950/90 text-rose-300 border-rose-500 animate-pulse shadow-[0_0_20px_#f43f5e]' : 'bg-black/90 text-[#00ff66] border-[#00ff66]/60'}
             `}
           >
             {formatTime(timeLeft)}
           </div>
         ) : (
-          <div className="px-3.5 py-1.5 rounded-full font-bold text-xs bg-slate-900/80 text-emerald-300 border border-emerald-500/40">
-            ZEN MODE
+          <div className="px-3 py-1 rounded-lg font-mono font-bold text-xs bg-black/90 text-[#00ffcc] border border-[#00ffcc]/60 shadow-[0_0_10px_rgba(0,255,204,0.3)]">
+            NEO ZEN
           </div>
         )}
       </div>
 
-      {/* Torn Paper Score Banner */}
+      {/* Cyber HUD Score Banner */}
       <div className="my-2 relative w-full flex flex-col items-center">
         <ScoreBanner
           wordsCount={submittedWords.length}
@@ -265,51 +265,51 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           avatarBg={playerProfile.avatarColor}
         />
 
-        {/* Floating Toast Notification */}
+        {/* Floating Cyber Toast Notification */}
         {feedbackToast && (
           <div
             className={`
-              absolute -bottom-10 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full font-black text-sm tracking-wide shadow-2xl flex items-center gap-1.5 z-30 animate-pop-score
-              ${feedbackToast.type === 'success' ? 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-300' : 'bg-rose-600 text-white ring-2 ring-rose-300'}
+              absolute -bottom-10 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded font-mono font-black text-xs sm:text-sm tracking-wider shadow-[0_0_20px_rgba(0,255,102,0.5)] flex items-center gap-1.5 z-30 animate-pop-score border
+              ${feedbackToast.type === 'success' ? 'bg-[#002a11] text-[#00ff66] border-[#00ff66]' : 'bg-[#3b0808] text-rose-300 border-rose-500'}
             `}
           >
-            {feedbackToast.type === 'error' && <AlertCircle className="w-4 h-4" />}
-            <span>{feedbackToast.message}</span>
+            {feedbackToast.type === 'error' && <AlertCircle className="w-4 h-4 text-rose-400" />}
+            <span>{feedbackToast.type === 'success' ? `[ DECRYPTED ${feedbackToast.message} ]` : `[ ERR: ${feedbackToast.message} ]`}</span>
           </div>
         )}
       </div>
 
-      {/* Found Words Mini Ticker (recent words) */}
-      <div className="w-full flex items-center justify-center gap-1.5 overflow-x-auto py-1 px-2 min-h-7">
+      {/* Decrypted Payload Stream (recent words) */}
+      <div className="w-full flex items-center justify-center gap-1.5 overflow-x-auto py-1 px-2 min-h-8">
         {submittedWords.slice(0, 5).map((sw, i) => (
           <span
             key={`${sw.word}-${i}`}
-            className="text-[11px] font-bold bg-slate-900/60 border border-slate-700/60 text-amber-300 px-2 py-0.5 rounded-md shadow-sm animate-pop-score"
+            className="text-[11px] font-mono font-bold bg-black/80 border border-[#00ff66]/50 text-[#00ff66] px-2 py-0.5 rounded shadow-[0_0_8px_rgba(0,255,102,0.2)] animate-pop-score"
           >
-            {sw.word} <span className="text-slate-400 font-normal">+{sw.score}</span>
+            {sw.word} <span className="text-[#00ffcc] font-normal">+{sw.score}b</span>
           </span>
         ))}
       </div>
 
-      {/* Mid Action: ENTER Button */}
-      <div className="flex flex-col items-center justify-center my-3">
+      {/* Mid Action: Cyber EXECUTE Button */}
+      <div className="flex flex-col items-center justify-center my-2">
         <button
           id="enter-button"
           type="button"
           onClick={handleSubmitWord}
           disabled={!canSubmit}
           className={`
-            w-48 sm:w-56 py-2.5 sm:py-3 rounded-xl font-black text-base sm:text-lg tracking-widest uppercase transition-all duration-150 select-none
+            w-52 sm:w-60 py-3 rounded-xl font-['Orbitron',monospace] font-black text-sm sm:text-base tracking-widest uppercase transition-all duration-150 select-none border
             ${canSubmit
-              ? 'bg-gradient-to-b from-indigo-500 to-indigo-700 hover:from-indigo-400 hover:to-indigo-600 active:scale-95 text-white shadow-lg border border-indigo-400/50 cursor-pointer'
-              : 'bg-slate-800/40 text-slate-500/60 border border-slate-700/30 cursor-not-allowed'}
+              ? 'bg-gradient-to-r from-emerald-600 via-[#00ff66] to-teal-500 text-black shadow-[0_0_25px_#00ff66] hover:shadow-[0_0_35px_#00ff66] hover:scale-[1.02] active:scale-95 border-white cursor-pointer'
+              : 'bg-black/40 text-emerald-900/60 border-emerald-950/40 cursor-not-allowed'}
           `}
         >
-          ENTER
+          [ EXECUTE // ENTER ]
         </button>
       </div>
 
-      {/* Target Word Slots Area */}
+      {/* Target Word Cyber Slots Area */}
       <div
         id="word-slots-container"
         className={`
@@ -322,7 +322,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           return (
             <div
               key={`slot-${idx}`}
-              className="slot-well w-12 h-14 sm:w-14 sm:h-16 rounded-[7px] flex items-center justify-center"
+              className="matrix-slot-well w-12 h-14 sm:w-14 sm:h-16 rounded-[8px] flex items-center justify-center"
             >
               {slottedTile && (
                 <WoodTile
@@ -337,7 +337,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         })}
       </div>
 
-      {/* Bottom Letter Rack */}
+      {/* Bottom Data Keycap Rack */}
       <div
         id="letter-rack-container"
         className="flex items-center justify-center gap-1.5 sm:gap-2 pt-2 pb-4"

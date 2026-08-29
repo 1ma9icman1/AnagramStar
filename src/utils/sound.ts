@@ -23,20 +23,20 @@ class SoundEngine {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
 
-      // Wood block clack sound: fast pitch drop + bandpass
-      const freq = (380 + Math.random() * 40) * pitchMultiplier;
-      osc.type = 'triangle';
+      // Cyber mechanical switch + blip
+      const freq = (520 + Math.random() * 60) * pitchMultiplier;
+      osc.type = 'sine';
       osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(freq * 0.4, this.ctx.currentTime + 0.04);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.8, this.ctx.currentTime + 0.02);
 
-      gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+      gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
 
       osc.connect(gain);
       gain.connect(this.ctx.destination);
 
       osc.start();
-      osc.stop(this.ctx.currentTime + 0.05);
+      osc.stop(this.ctx.currentTime + 0.04);
     } catch {
       // AudioContext could be blocked by browser policy
     }
@@ -51,19 +51,19 @@ class SoundEngine {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
 
-      const freq = 260 + Math.random() * 30;
+      const freq = 340 + Math.random() * 30;
       osc.type = 'sine';
       osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(140, this.ctx.currentTime + 0.04);
+      osc.frequency.exponentialRampToValueAtTime(180, this.ctx.currentTime + 0.035);
 
-      gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+      gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.035);
 
       osc.connect(gain);
       gain.connect(this.ctx.destination);
 
       osc.start();
-      osc.stop(this.ctx.currentTime + 0.04);
+      osc.stop(this.ctx.currentTime + 0.035);
     } catch {
       // Ignore
     }
@@ -75,10 +75,10 @@ class SoundEngine {
       this.initCtx();
       if (!this.ctx) return;
 
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 5; i++) {
         setTimeout(() => {
-          this.playTileClick(0.9 + Math.random() * 0.4);
-        }, i * 35);
+          this.playTileClick(1.1 + i * 0.15 + (Math.random() - 0.5) * 0.2);
+        }, i * 28);
       }
     } catch {
       // Ignore
@@ -91,12 +91,13 @@ class SoundEngine {
       this.initCtx();
       if (!this.ctx) return;
 
+      // Cyber Matrix Synth arpeggio
       const baseFrequencies = [
-        [523.25, 659.25], // C5, E5 for 3-letter
-        [523.25, 659.25, 783.99], // C5, E5, G5 for 4-letter
-        [523.25, 659.25, 783.99, 1046.50], // C5, E5, G5, C6 for 5-letter
-        [523.25, 659.25, 783.99, 1046.50, 1318.51], // C5, E5, G5, C6, E6 for 6-letter
-        [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98], // 7-letter
+        [587.33, 880.0], // D5, A5 for 3-letter
+        [587.33, 739.99, 880.0], // D5, F#5, A5 for 4-letter
+        [587.33, 739.99, 880.0, 1174.66], // 5-letter
+        [587.33, 739.99, 880.0, 1174.66, 1479.98], // 6-letter
+        [587.33, 739.99, 880.0, 1174.66, 1479.98, 1760.0], // 7-letter
       ];
 
       const noteSet = baseFrequencies[Math.min(length - 3, baseFrequencies.length - 1)] || baseFrequencies[0];
@@ -106,19 +107,19 @@ class SoundEngine {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
 
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.05);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.04);
 
-        const startTime = this.ctx.currentTime + idx * 0.05;
+        const startTime = this.ctx.currentTime + idx * 0.04;
         gain.gain.setValueAtTime(0, startTime);
-        gain.gain.linearRampToValueAtTime(0.25, startTime + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.35);
+        gain.gain.linearRampToValueAtTime(0.22, startTime + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
 
         osc.connect(gain);
         gain.connect(this.ctx.destination);
 
         osc.start(startTime);
-        osc.stop(startTime + 0.36);
+        osc.stop(startTime + 0.32);
       });
     } catch {
       // Ignore
@@ -135,17 +136,17 @@ class SoundEngine {
       const gain = this.ctx.createGain();
 
       osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(140, this.ctx.currentTime);
-      osc.frequency.linearRampToValueAtTime(110, this.ctx.currentTime + 0.15);
+      osc.frequency.setValueAtTime(120, this.ctx.currentTime);
+      osc.frequency.linearRampToValueAtTime(70, this.ctx.currentTime + 0.18);
 
       gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.15);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.18);
 
       osc.connect(gain);
       gain.connect(this.ctx.destination);
 
       osc.start();
-      osc.stop(this.ctx.currentTime + 0.15);
+      osc.stop(this.ctx.currentTime + 0.18);
     } catch {
       // Ignore
     }
@@ -161,16 +162,16 @@ class SoundEngine {
       const gain = this.ctx.createGain();
 
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, this.ctx.currentTime);
+      osc.frequency.setValueAtTime(1046.5, this.ctx.currentTime); // C6 cyber ping
 
       gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.025);
 
       osc.connect(gain);
       gain.connect(this.ctx.destination);
 
       osc.start();
-      osc.stop(this.ctx.currentTime + 0.03);
+      osc.stop(this.ctx.currentTime + 0.025);
     } catch {
       // Ignore
     }
