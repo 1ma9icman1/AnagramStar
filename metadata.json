@@ -1,6 +1,6 @@
 {
-  "name": "Anagrams - Discord Word Game",
-  "description": "An authentic clone of the classic iPhone GamePigeon Anagrams word scramble puzzle game, complete with wooden tiles, multiplayer challenges, Discord sharing, and solo rush modes.",
+  "name": "Anagrams Discord Edition",
+  "description": "A faithful recreation of the classic iPhone GamePigeon Anagrams word game tailored for Discord activities and multiplayer fun.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

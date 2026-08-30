@@ -218,6 +218,31 @@ class SoundEngine {
     } catch {}
   }
 
+  // 8-Bit quick positive notification beep
+  public playSuccessBeep() {
+    if (!this.enabled) return;
+    try {
+      this.initCtx();
+      if (!this.ctx) return;
+
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(587.33, this.ctx.currentTime); // D5
+      osc.frequency.setValueAtTime(880.0, this.ctx.currentTime + 0.05); // A5
+
+      gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.12);
+    } catch {}
+  }
+
   // 8-Bit Tick
   public playTick() {
     if (!this.enabled) return;
@@ -465,9 +490,86 @@ class SoundEngine {
       });
     } catch {}
   }
+  // Voice synthesis and audio for secret unlocked
+  public speakSecretUnlocked() {
+    if (!this.enabled) return;
+
+    // 1. Web Speech API voice synthesis: "Secret unlocked"
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance('Secret unlocked');
+        utterance.rate = 0.92;
+        utterance.pitch = 1.15;
+        utterance.volume = 1.0;
+
+        const setVoiceAndSpeak = () => {
+          const voices = window.speechSynthesis.getVoices();
+          const preferredVoice =
+            voices.find(
+              (v) =>
+                v.lang.startsWith('en') &&
+                (v.name.includes('Google') ||
+                  v.name.includes('Natural') ||
+                  v.name.includes('Samantha') ||
+                  v.name.includes('Daniel') ||
+                  v.name.includes('Alex') ||
+                  v.name.includes('Zira') ||
+                  v.name.includes('David'))
+            ) || voices.find((v) => v.lang.startsWith('en'));
+
+          if (preferredVoice) {
+            utterance.voice = preferredVoice;
+          }
+          window.speechSynthesis.speak(utterance);
+        };
+
+        if (window.speechSynthesis.getVoices().length > 0) {
+          setVoiceAndSpeak();
+        } else {
+          window.speechSynthesis.onvoiceschanged = () => {
+            setVoiceAndSpeak();
+          };
+          // Fallback trigger if onvoiceschanged doesn't fire immediately
+          setTimeout(setVoiceAndSpeak, 50);
+        }
+      } catch (e) {
+        console.warn('Speech synthesis error', e);
+      }
+    }
+
+    // 2. Cyber Melodic Chime & Fanfare
+    try {
+      this.initCtx();
+      if (!this.ctx) return;
+
+      const chordNotes = [523.25, 659.25, 783.99, 1046.5, 1318.51, 1567.98, 2093.0];
+      chordNotes.forEach((freq, idx) => {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
+        const startTime = this.ctx.currentTime + idx * 0.06;
+        osc.frequency.setValueAtTime(freq, startTime);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.02, startTime + 0.4);
+
+        gain.gain.setValueAtTime(0.22, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.6);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(startTime);
+        osc.stop(startTime + 0.65);
+      });
+    } catch {}
+  }
+
   // Hacker Cyber Unlock Synth Arpeggio & Matrix Beep Sequence
   public playHackerUnlock() {
     if (!this.enabled) return;
+    this.speakSecretUnlocked();
     try {
       this.initCtx();
       if (!this.ctx) return;
@@ -510,6 +612,61 @@ class SoundEngine {
         bassOsc.start();
         bassOsc.stop(this.ctx.currentTime + 0.45);
       }, 400);
+    } catch {}
+  }
+
+  // 2-Player Countdown Tick & Match Start Beep
+  public playCountdownBeep(isFinal: boolean = false) {
+    if (!this.enabled) return;
+    try {
+      this.initCtx();
+      if (!this.ctx) return;
+
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      const freq = isFinal ? 880 : 440;
+      const duration = isFinal ? 0.35 : 0.12;
+
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+      if (isFinal) {
+        osc.frequency.exponentialRampToValueAtTime(1320, this.ctx.currentTime + 0.1);
+      }
+
+      gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start();
+      osc.stop(this.ctx.currentTime + duration);
+    } catch {}
+  }
+
+  // Opponent Scored / Found Word in 2-Player Match
+  public playOpponentFoundWord() {
+    if (!this.enabled) return;
+    try {
+      this.initCtx();
+      if (!this.ctx) return;
+
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(480, this.ctx.currentTime + 0.08);
+
+      gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.12);
     } catch {}
   }
 }

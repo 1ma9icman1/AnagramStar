@@ -25,6 +25,43 @@ export const ScoreBanner: React.FC<ScoreBannerProps> = ({
 }) => {
   const isCyber = skin === 'cyber';
   const isNokia = skin === 'nokia';
+  const isNormal = skin === 'normal';
+
+  if (isNormal) {
+    return (
+      <div
+        id={id || `normal-hud-banner-${isOpponent ? 'opp' : 'user'}`}
+        className={`
+          border border-amber-800/40 bg-gradient-to-r from-slate-900/90 via-slate-800/90 to-slate-900/90 rounded-xl
+          ${compact ? 'px-3 py-1.5' : 'px-4 py-2.5 max-w-sm w-full mx-auto'}
+          flex items-center justify-between select-none shadow-md
+        `}
+      >
+        {/* Player info */}
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-b from-amber-200 to-amber-500 border border-amber-600 flex items-center justify-center text-base shrink-0 shadow-sm">
+            {avatarEmoji}
+          </div>
+          <div className="flex flex-col min-w-0">
+            <div className="text-xs font-bold text-amber-100 truncate max-w-[120px]">
+              {playerName || (isOpponent ? 'OPPONENT' : 'PLAYER 1')}
+            </div>
+            <div className="text-[10px] text-slate-400 font-medium">
+              WORDS: {isOpponent && score === -1 ? '??' : wordsCount}
+            </div>
+          </div>
+        </div>
+
+        {/* Score */}
+        <div className="text-right shrink-0">
+          <div className="text-[9px] text-amber-400/80 font-bold uppercase tracking-wider">SCORE</div>
+          <div className="text-sm sm:text-base font-extrabold text-amber-300">
+            {isOpponent && score === -1 ? '????' : score.toLocaleString()}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isCyber) {
     return (

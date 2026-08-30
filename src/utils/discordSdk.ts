@@ -9,13 +9,30 @@ let isInitialized = false;
 
 export async function initDiscordSdk(): Promise<{
   inDiscord: boolean;
-  user?: { id: string; username: string; avatarUrl?: string };
+  user?: { id: string; username: string; avatarUrl?: string; discriminator?: string };
 }> {
-  // Check if we are inside Discord's iframe environment
+  // Check if we are inside Discord's iframe environment or query params provide info
+  const discordUsernameParam = queryParams.get('username') || queryParams.get('user') || queryParams.get('discord_user');
+  const discordAvatarParam = queryParams.get('avatar');
+  const discordIdParam = queryParams.get('user_id') || queryParams.get('id');
+
   const isInsideDiscordIframe =
     window.location.hostname.includes('discordsays.com') ||
     Boolean(queryParams.get('frame_id')) ||
-    Boolean(queryParams.get('instance_id'));
+    Boolean(queryParams.get('instance_id')) ||
+    Boolean(discordUsernameParam);
+
+  // If query parameters already have the player's Discord username
+  if (discordUsernameParam) {
+    return {
+      inDiscord: true,
+      user: {
+        id: discordIdParam || 'discord-player',
+        username: discordUsernameParam,
+        avatarUrl: discordAvatarParam || undefined,
+      },
+    };
+  }
 
   if (!isInsideDiscordIframe) {
     return { inDiscord: false };
@@ -37,16 +54,43 @@ export async function initDiscordSdk(): Promise<{
       isInitialized = true;
     }
 
+    // Try extracting user info from discord sdk instance or auth context if available
+    let detectedName = 'Discord Player';
+    let detectedId = discordSdkInstance.instanceId || 'discord-user';
+    let avatarUrl: string | undefined = undefined;
+
+    // Check discordSdk user info properties
+    const sdkAny = discordSdkInstance as any;
+    if (sdkAny.user?.username || sdkAny.user?.global_name) {
+      detectedName = sdkAny.user.global_name || sdkAny.user.username;
+      detectedId = sdkAny.user.id || detectedId;
+      if (sdkAny.user.avatar) {
+        avatarUrl = `https://cdn.discordapp.com/avatars/${sdkAny.user.id}/${sdkAny.user.avatar}.png`;
+      }
+    } else if (sdkAny.currentUser?.username || sdkAny.currentUser?.global_name) {
+      detectedName = sdkAny.currentUser.global_name || sdkAny.currentUser.username;
+      detectedId = sdkAny.currentUser.id || detectedId;
+      if (sdkAny.currentUser.avatar) {
+        avatarUrl = `https://cdn.discordapp.com/avatars/${sdkAny.currentUser.id}/${sdkAny.currentUser.avatar}.png`;
+      }
+    }
+
     return {
       inDiscord: true,
       user: {
-        id: discordSdkInstance.instanceId || 'discord-player',
-        username: 'Discord Player',
+        id: detectedId,
+        username: detectedName,
+        avatarUrl,
       },
     };
   } catch (err) {
     console.warn('Discord SDK initialization skipped or timed out:', err);
-    return { inDiscord: isInsideDiscordIframe };
+    return {
+      inDiscord: isInsideDiscordIframe,
+      user: discordUsernameParam
+        ? { id: 'discord-player', username: discordUsernameParam }
+        : undefined,
+    };
   }
 }
 

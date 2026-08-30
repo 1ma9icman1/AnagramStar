@@ -22,6 +22,15 @@ interface GameBoardProps {
     currentTurn: 1 | 2;
     operatorName: string;
   };
+  onlineOpponentLive?: {
+    name: string;
+    avatarEmoji?: string;
+    score: number;
+    wordCount: number;
+    latestWord?: string;
+    latestWordScore?: number;
+  } | null;
+  onWordSubmitted?: (word: SubmittedWord, newTotalScore: number) => void;
   onRoundComplete: (words: SubmittedWord[], score: number) => void;
   onExitToLobby: () => void;
   initialScore?: number;
@@ -33,11 +42,14 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
   playerProfile,
   settings,
   duelTurnInfo,
+  onlineOpponentLive,
+  onWordSubmitted,
   onRoundComplete,
   onExitToLobby,
   skin = 'gameboy',
 }, ref) => {
   const isCyber = skin === 'cyber';
+  const isNormal = skin === 'normal';
   const [rackLetters, setRackLetters] = useState<TileLetter[]>(() =>
     scrambledLetters.split('').map((ch, idx) => ({
       id: `tile-${idx}-${ch}-${Math.random().toString(36).substring(2, 5)}`,
@@ -215,8 +227,11 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
       };
 
       setSubmittedWords((prev) => [newSubmitted, ...prev]);
-      setScore((prev) => prev + wordScore);
+      const newTotalScore = score + wordScore;
+      setScore(newTotalScore);
       showToast(`+${wordScore} PTS`, 'success', wordScore);
+
+      onWordSubmitted?.(newSubmitted, newTotalScore);
 
       setRackLetters((prev) => [...prev, ...slottedLetters]);
       setSlottedLetters([]);
@@ -414,7 +429,9 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
     <div
       id="game-board-container"
       className={`relative w-full h-full flex flex-col justify-between p-2 sm:p-4 select-none ${
-        isCyber
+        isNormal
+          ? 'text-slate-100 font-sans'
+          : isCyber
           ? 'text-emerald-100 font-mono'
           : "text-[var(--lcd-darkest,#0f380f)] font-['Press_Start_2P',monospace]"
       }`}
@@ -422,7 +439,11 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
       {/* Top Header Bar */}
       <div
         className={`flex items-center justify-between pb-2 border-b-2 text-[8px] sm:text-[9px] ${
-          isCyber ? 'border-emerald-500/40' : 'border-[var(--lcd-darkest,#0f380f)]'
+          isNormal
+            ? 'border-amber-800/40 text-slate-300 font-medium'
+            : isCyber
+            ? 'border-emerald-500/40'
+            : 'border-[var(--lcd-darkest,#0f380f)]'
         }`}
       >
         {/* Left: Exit/Menu */}
@@ -430,8 +451,10 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
           id="board-menu-btn"
           type="button"
           onClick={onExitToLobby}
-          className={`px-2 py-1 border cursor-pointer active:scale-95 transition-all ${
-            isCyber
+          className={`px-2.5 py-1 border cursor-pointer active:scale-95 transition-all rounded ${
+            isNormal
+              ? 'border-amber-700/60 bg-slate-800/80 hover:bg-slate-700 text-amber-200 shadow-xs'
+              : isCyber
               ? 'border-emerald-500/60 bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300'
               : 'border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-bg-light,#9bbc0f)] hover:bg-[var(--lcd-dark,#306230)] hover:text-[var(--lcd-bg-light,#9bbc0f)]'
           }`}
@@ -443,7 +466,9 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
         {duelTurnInfo ? (
           <div
             className={`px-2 py-0.5 rounded text-[8px] font-bold ${
-              isCyber
+              isNormal
+                ? 'bg-amber-500/20 border border-amber-500/40 text-amber-300'
+                : isCyber
                 ? 'bg-emerald-950 border border-emerald-500 text-emerald-300 shadow-[0_0_8px_rgba(0,255,102,0.3)]'
                 : 'bg-[var(--lcd-darkest,#0f380f)] text-[var(--lcd-bg-light,#9bbc0f)]'
             }`}
@@ -451,20 +476,24 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
             T{duelTurnInfo.currentTurn}: {duelTurnInfo.operatorName.substring(0, 8)}
           </div>
         ) : (
-          <div className={`text-[8px] tracking-wider ${isCyber ? 'text-emerald-400 font-bold' : ''}`}>
+          <div className={`text-[9px] tracking-wider ${isNormal ? 'text-amber-300 font-extrabold' : isCyber ? 'text-emerald-400 font-bold' : ''}`}>
             ANAGRAMS
           </div>
         )}
 
         {/* Right: Timer */}
         <div className="flex items-center gap-1 font-bold">
-          <span className={isCyber ? 'text-emerald-500' : ''}>TIME:</span>
+          <span className={isNormal ? 'text-amber-400' : isCyber ? 'text-emerald-500' : ''}>TIME:</span>
           <span
-            className={`px-1.5 py-0.5 rounded ${
+            className={`px-2 py-0.5 rounded ${
               timeLeft <= 10
-                ? isCyber
+                ? isNormal
+                  ? 'bg-red-900/80 border border-red-500 text-red-200 animate-pulse font-extrabold shadow-sm'
+                  : isCyber
                   ? 'bg-red-950 border border-red-500 text-red-300 animate-pulse shadow-[0_0_8px_red]'
                   : 'bg-[var(--lcd-darkest,#0f380f)] text-[var(--lcd-bg-light,#9bbc0f)] animate-pulse'
+                : isNormal
+                ? 'bg-slate-800 border border-amber-600/40 text-amber-300 font-bold'
                 : isCyber
                 ? 'text-emerald-300'
                 : ''
@@ -477,21 +506,74 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
 
       {/* Score HUD Banner */}
       <div className="my-1">
-        <ScoreBanner
-          wordsCount={submittedWords.length}
-          score={score}
-          avatarEmoji={playerProfile.avatarEmoji}
-          playerName={playerProfile.name}
-          compact
-          skin={skin}
-        />
+        {onlineOpponentLive ? (
+          <div
+            className={`p-1.5 border rounded-lg flex items-center justify-between text-[7px] sm:text-[8px] font-bold ${
+              isNormal
+                ? 'border-indigo-600/70 bg-slate-900/90 text-slate-100'
+                : isCyber
+                ? 'border-emerald-600 bg-black/80 text-emerald-300 shadow-[0_0_10px_rgba(0,255,102,0.2)]'
+                : 'border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-bg-light,#9bbc0f)] text-[var(--lcd-darkest,#0f380f)]'
+            }`}
+          >
+            {/* Player Side */}
+            <div className="flex items-center gap-1.5">
+              <span>{playerProfile.avatarEmoji || '🎮'}</span>
+              <div>
+                <div className="text-[6px] opacity-75">{playerProfile.name.substring(0, 10)} (YOU)</div>
+                <div className="text-[9px] font-black">{score.toLocaleString()} PTS</div>
+              </div>
+            </div>
+
+            {/* Duel Status Meter */}
+            <div className="text-center px-2">
+              <span
+                className={`px-1.5 py-0.5 border rounded-full text-[6px] uppercase tracking-wider ${
+                  score > onlineOpponentLive.score
+                    ? 'border-emerald-500 bg-emerald-950/80 text-emerald-300'
+                    : score < onlineOpponentLive.score
+                    ? 'border-rose-500 bg-rose-950/80 text-rose-300'
+                    : 'border-amber-500 bg-amber-950/80 text-amber-300'
+                }`}
+              >
+                {score > onlineOpponentLive.score
+                  ? '👑 LEADING'
+                  : score < onlineOpponentLive.score
+                  ? '⚔️ BEHIND'
+                  : '🤝 TIED'}
+              </span>
+            </div>
+
+            {/* Opponent Side */}
+            <div className="flex items-center gap-1.5 text-right">
+              <div>
+                <div className="text-[6px] opacity-75">{onlineOpponentLive.name.substring(0, 10)}</div>
+                <div className="text-[9px] font-black">{onlineOpponentLive.score.toLocaleString()} PTS</div>
+              </div>
+              <span>{onlineOpponentLive.avatarEmoji || '🕹️'}</span>
+            </div>
+          </div>
+        ) : (
+          <ScoreBanner
+            wordsCount={submittedWords.length}
+            score={score}
+            avatarEmoji={playerProfile.avatarEmoji}
+            playerName={playerProfile.name}
+            compact
+            skin={skin}
+          />
+        )}
       </div>
 
       {/* Toast Popover */}
       {feedbackToast && (
         <div
           className={`w-full text-center py-1 text-[8px] sm:text-[9px] font-bold animate-gb-pop rounded ${
-            isCyber
+            isNormal
+              ? feedbackToast.type === 'success'
+                ? 'bg-emerald-900/90 border border-emerald-500 text-emerald-100 shadow-md'
+                : 'bg-rose-900/90 border border-rose-500 text-rose-100 shadow-md'
+              : isCyber
               ? feedbackToast.type === 'success'
                 ? 'bg-emerald-950/90 border border-emerald-400 text-emerald-200 shadow-[0_0_12px_#00ff66]'
                 : 'bg-red-950/90 border border-red-500 text-red-200 shadow-[0_0_12px_red]'
@@ -504,22 +586,26 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
 
       {/* Recent Found Words Stream */}
       <div
-        className={`w-full flex items-center gap-1.5 overflow-x-auto py-1.5 px-2 min-h-[28px] gb-scroll border-y text-[8px] ${
-          isCyber
+        className={`w-full flex items-center gap-1.5 overflow-x-auto py-1.5 px-2 min-h-[28px] gb-scroll border-y text-[8px] rounded ${
+          isNormal
+            ? 'border-amber-900/30 bg-slate-950/50 text-slate-300'
+            : isCyber
             ? 'border-emerald-900/50 bg-black/40 text-emerald-300'
             : 'border-[var(--lcd-dark,#306230)]/40 text-[var(--lcd-darkest,#0f380f)]'
         }`}
       >
         {submittedWords.length === 0 ? (
-          <span className={`text-[7px] ${isCyber ? 'text-emerald-600' : 'text-[var(--lcd-dark,#306230)]'}`}>
+          <span className={`text-[8px] ${isNormal ? 'text-amber-400/60 font-medium' : isCyber ? 'text-emerald-600' : 'text-[var(--lcd-dark,#306230)]'}`}>
             BUILD 3-7 LETTER WORDS...
           </span>
         ) : (
           submittedWords.slice(0, 6).map((sw, i) => (
             <span
               key={`${sw.word}-${i}`}
-              className={`px-1.5 py-0.5 border rounded-xs shrink-0 font-bold ${
-                isCyber
+              className={`px-2 py-0.5 border rounded shrink-0 font-bold ${
+                isNormal
+                  ? 'border-amber-600/50 bg-gradient-to-r from-amber-500/20 to-amber-700/20 text-amber-200 shadow-xs'
+                  : isCyber
                   ? 'border-emerald-500/50 bg-emerald-950/60 text-emerald-300 shadow-[0_0_5px_rgba(0,255,102,0.2)]'
                   : 'border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-bg-light,#9bbc0f)] text-[var(--lcd-darkest,#0f380f)]'
               }`}
@@ -532,7 +618,7 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
 
       {/* Target Word Slots Area */}
       <div className="my-2 flex flex-col items-center">
-        <div className={`text-[7px] mb-1.5 ${isCyber ? 'text-emerald-400/80 font-mono' : 'text-[var(--lcd-dark,#306230)]'}`}>
+        <div className={`text-[8px] mb-1.5 ${isNormal ? 'text-amber-300/80 font-bold uppercase tracking-wider' : isCyber ? 'text-emerald-400/80 font-mono' : 'text-[var(--lcd-dark,#306230)]'}`}>
           SPELL WORD:
         </div>
         <div
@@ -544,8 +630,8 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
             return (
               <div
                 key={`slot-${idx}`}
-                className={`w-9 h-10 sm:w-11 sm:h-12 rounded flex items-center justify-center ${
-                  isCyber ? 'matrix-slot-well' : 'gb-slot-well'
+                className={`w-9 h-10 sm:w-11 sm:h-12 rounded-lg flex items-center justify-center ${
+                  isNormal ? 'wood-slot-well' : isCyber ? 'matrix-slot-well' : 'gb-slot-well'
                 }`}
               >
                 {slottedTile && (
@@ -603,8 +689,12 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
 
       {/* Action Bar */}
       <div
-        className={`pt-2 border-t-2 grid grid-cols-3 gap-1.5 text-[7px] sm:text-[8px] ${
-          isCyber ? 'border-emerald-500/40' : 'border-[var(--lcd-darkest,#0f380f)]'
+        className={`pt-2 border-t-2 grid grid-cols-3 gap-1.5 text-[8px] sm:text-[9px] ${
+          isNormal
+            ? 'border-amber-900/40'
+            : isCyber
+            ? 'border-emerald-500/40'
+            : 'border-[var(--lcd-darkest,#0f380f)]'
         }`}
       >
         {/* SHUFFLE */}
@@ -612,13 +702,15 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
           id="action-shuffle-button"
           type="button"
           onClick={handleShuffle}
-          className={`py-2 border rounded-sm cursor-pointer text-center active:scale-95 transition-all ${
-            isCyber
+          className={`py-2.5 border rounded-lg cursor-pointer text-center active:scale-95 transition-all font-bold ${
+            isNormal
+              ? 'border-amber-700/60 bg-gradient-to-b from-amber-700/30 to-amber-900/40 hover:from-amber-600/40 hover:to-amber-800/50 text-amber-200 shadow-sm'
+              : isCyber
               ? 'border-emerald-500/60 bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300'
               : 'border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-bg-light,#9bbc0f)] hover:bg-[var(--lcd-dark,#306230)] hover:text-[var(--lcd-bg-light,#9bbc0f)]'
           }`}
         >
-          {isCyber ? '[SPACE] SHUFFLE' : '[SEL] SHUFFLE'}
+          {isNormal ? '🔀 SHUFFLE' : isCyber ? '[SPACE] SHUFFLE' : '[SEL] SHUFFLE'}
         </button>
 
         {/* CLEAR */}
@@ -626,13 +718,15 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
           id="action-clear-button"
           type="button"
           onClick={handleClearSlots}
-          className={`py-2 border rounded-sm text-center cursor-pointer active:scale-95 transition-all ${
-            isCyber
+          className={`py-2.5 border rounded-lg text-center cursor-pointer active:scale-95 transition-all font-bold ${
+            isNormal
+              ? 'border-rose-800/60 bg-gradient-to-b from-rose-950/40 to-rose-900/40 text-rose-200 hover:from-rose-900/50 hover:to-rose-800/50 shadow-sm'
+              : isCyber
               ? 'border-emerald-500/60 bg-emerald-950/60 text-emerald-300 hover:bg-emerald-900/60'
               : 'border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-bg-light,#9bbc0f)] hover:bg-[var(--lcd-dark,#306230)] hover:text-[var(--lcd-bg-light,#9bbc0f)]'
           }`}
         >
-          {isCyber ? '[BACKSPACE] CLEAR' : '[B] CLEAR'}
+          {isNormal ? '⌫ CLEAR' : isCyber ? '[BACKSPACE] CLEAR' : '[B] CLEAR'}
         </button>
 
         {/* SUBMIT */}
@@ -640,8 +734,12 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
           id="action-submit-button"
           type="button"
           onClick={handleSubmitWord}
-          className={`py-2 border rounded-sm text-center font-bold cursor-pointer active:scale-95 transition-all ${
-            isCyber
+          className={`py-2.5 border rounded-lg text-center font-extrabold cursor-pointer active:scale-95 transition-all ${
+            isNormal
+              ? canSubmit
+                ? 'border-emerald-500 bg-gradient-to-b from-emerald-500 to-emerald-700 text-white shadow-lg hover:brightness-110 animate-pulse'
+                : 'border-slate-700 bg-slate-800/60 text-slate-400 cursor-not-allowed'
+              : isCyber
               ? canSubmit
                 ? 'border-[#00ff66] bg-[#00ff66] text-black shadow-[0_0_15px_#00ff66] hover:bg-[#33ff88] animate-pulse'
                 : 'border-emerald-700/60 bg-emerald-950/60 text-emerald-400 hover:bg-emerald-900/60'
@@ -650,7 +748,7 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
               : 'border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-bg-light,#9bbc0f)] hover:bg-[var(--lcd-dark,#306230)] hover:text-[var(--lcd-bg-light,#9bbc0f)]'
           }`}
         >
-          {isCyber ? '[ENTER] SUBMIT' : '[A] SUBMIT'}
+          {isNormal ? '✓ SUBMIT' : isCyber ? '[ENTER] SUBMIT' : '[A] SUBMIT'}
         </button>
       </div>
     </div>

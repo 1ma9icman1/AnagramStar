@@ -420,6 +420,83 @@
     transform: translate(1px, 1px);
     box-shadow: 0 0 0 #11240e;
   }
+
+  /* =========================================================
+     4. ORIGINAL GAMEPIGEON CLASSIC WOOD & FELT THEME STYLES
+     ========================================================= */
+
+  /* Authentic 3D Wood Tile */
+  .wood-tile-classic {
+    background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 15%, #fde68a 50%, #f59e0b 85%, #d97706 100%);
+    border: 1.5px solid #b45309;
+    color: #451a03;
+    box-shadow: 
+      0 4px 0 #92400e,
+      0 6px 12px rgba(0, 0, 0, 0.35),
+      inset 0 1px 1px rgba(255, 255, 255, 0.8),
+      inset 0 -1px 2px rgba(180, 83, 9, 0.4);
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 800;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+    border-radius: 8px;
+  }
+
+  .wood-tile-classic:hover:not(:disabled) {
+    background: linear-gradient(180deg, #ffffff 0%, #fffbeb 20%, #fef08a 55%, #fbbf24 85%, #d97706 100%);
+    box-shadow: 
+      0 5px 0 #92400e,
+      0 8px 16px rgba(0, 0, 0, 0.4),
+      inset 0 1px 1px rgba(255, 255, 255, 0.9);
+    transform: translateY(-2px);
+  }
+
+  .wood-tile-classic:active:not(:disabled) {
+    transform: translateY(3px);
+    box-shadow: 
+      0 1px 0 #92400e,
+      0 2px 4px rgba(0, 0, 0, 0.3),
+      inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Slotted Wood Tile Highlight */
+  .wood-tile-slotted {
+    background: linear-gradient(180deg, #fffbeb 0%, #fef08a 35%, #fbbf24 85%, #d97706 100%);
+    border: 1.5px solid #78350f;
+    box-shadow: 
+      0 3px 0 #78350f,
+      0 4px 8px rgba(0, 0, 0, 0.25),
+      inset 0 1px 1px rgba(255, 255, 255, 0.9);
+  }
+
+  /* Recessed Wood Slot Socket / Well */
+  .wood-slot-well {
+    background: radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.6) 0%, rgba(15, 23, 42, 0.9) 100%);
+    border: 2px dashed rgba(251, 191, 36, 0.4);
+    box-shadow: 
+      inset 0 3px 6px rgba(0, 0, 0, 0.7),
+      inset 0 1px 2px rgba(0, 0, 0, 0.9),
+      0 1px 1px rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+  }
+
+  /* GamePigeon Felt Table Canvas */
+  .felt-board {
+    background: radial-gradient(circle at 50% 30%, #1e293b 0%, #0f172a 70%, #020617 100%);
+    box-shadow: 
+      0 20px 40px rgba(0, 0, 0, 0.7),
+      inset 0 1px 1px rgba(255, 255, 255, 0.1),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Classic Wood Frame Border */
+  .wood-frame {
+    background: linear-gradient(180deg, #78350f 0%, #451a03 100%);
+    border: 2px solid #92400e;
+    box-shadow: 
+      0 8px 20px rgba(0, 0, 0, 0.6),
+      inset 0 1px 1px rgba(255, 255, 255, 0.2),
+      inset 0 -2px 4px rgba(0, 0, 0, 0.8);
+  }
 }
 
 /* 8-bit Shake */
@@ -442,6 +519,151 @@
 
 .animate-gb-pop {
   animation: gbPop 0.2s steps(4) forwards;
+}
+
+/* =========================================================
+   MA9IC RAINBOW ROTATING FADING EFFECT AROUND GUI
+   ========================================================= */
+
+@keyframes rainbowRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rainbowRotateReverse {
+  0% {
+    transform: rotate(360deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes rainbowHue {
+  0% {
+    filter: hue-rotate(0deg) saturate(1.8);
+  }
+  50% {
+    filter: hue-rotate(180deg) saturate(2.4);
+  }
+  100% {
+    filter: hue-rotate(360deg) saturate(1.8);
+  }
+}
+
+@keyframes rainbowPulseFade {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  12% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  85% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+}
+
+@keyframes rainbowGlowTrail {
+  0%, 100% {
+    box-shadow: 
+      0 0 25px rgba(255, 0, 0, 0.6),
+      0 0 50px rgba(255, 128, 0, 0.4),
+      0 0 80px rgba(0, 255, 128, 0.3),
+      inset 0 0 20px rgba(255, 255, 255, 0.4);
+  }
+  25% {
+    box-shadow: 
+      0 0 25px rgba(0, 255, 255, 0.6),
+      0 0 50px rgba(0, 128, 255, 0.4),
+      0 0 80px rgba(128, 0, 255, 0.3),
+      inset 0 0 20px rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    box-shadow: 
+      0 0 25px rgba(255, 0, 255, 0.6),
+      0 0 50px rgba(255, 0, 128, 0.4),
+      0 0 80px rgba(255, 255, 0, 0.3),
+      inset 0 0 20px rgba(255, 255, 255, 0.4);
+  }
+  75% {
+    box-shadow: 
+      0 0 25px rgba(0, 255, 0, 0.6),
+      0 0 50px rgba(255, 255, 0, 0.4),
+      0 0 80px rgba(255, 0, 0, 0.3),
+      inset 0 0 20px rgba(255, 255, 255, 0.4);
+  }
+}
+
+@keyframes rainbowShimmerText {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.rainbow-spinning-conic {
+  background: conic-gradient(
+    from 0deg,
+    #ff0000,
+    #ff7700,
+    #ffea00,
+    #00ff66,
+    #00ffff,
+    #0066ff,
+    #7f00ff,
+    #ff00aa,
+    #ff0000
+  );
+  animation: rainbowRotate 2.8s linear infinite;
+}
+
+.rainbow-spinning-conic-reverse {
+  background: conic-gradient(
+    from 180deg,
+    rgba(255, 0, 0, 0.9),
+    rgba(255, 120, 0, 0.9),
+    rgba(255, 240, 0, 0.9),
+    rgba(0, 255, 100, 0.9),
+    rgba(0, 240, 255, 0.9),
+    rgba(0, 80, 255, 0.9),
+    rgba(140, 0, 255, 0.9),
+    rgba(255, 0, 180, 0.9),
+    rgba(255, 0, 0, 0.9)
+  );
+  animation: rainbowRotateReverse 3.6s linear infinite;
+}
+
+.rainbow-text-shimmer {
+  background: linear-gradient(
+    90deg,
+    #ff3366,
+    #ff9933,
+    #ffff33,
+    #33ff66,
+    #33ccff,
+    #9933ff,
+    #ff3366
+  );
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: rainbowShimmerText 2s ease infinite;
 }
 
 /* Game Boy Scrollbar */

@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { NormalConsole } from './components/NormalConsole';
 import { GameBoyConsole, LcdPalette } from './components/GameBoyConsole';
 import { CyberConsole } from './components/CyberConsole';
 import { NokiaConsole } from './components/NokiaConsole';
 import { SkinSelectModal } from './components/SkinSelectModal';
+import { RainbowSecretEffect } from './components/RainbowSecretEffect';
 import { GameBoard, GameBoardHandle } from './components/GameBoard';
 import { ResultsView, ResultsViewHandle } from './components/ResultsView';
 import { LobbyView, LobbyViewHandle } from './components/LobbyView';
@@ -10,6 +12,16 @@ import { ProfileModal } from './components/ProfileModal';
 import { DictionaryModal } from './components/DictionaryModal';
 import { DiscordInviteModal } from './components/DiscordInviteModal';
 import { SecretMenuModal } from './components/SecretMenuModal';
+import { HighScoresModal } from './components/HighScoresModal';
+import { DailyChallengeModal } from './components/DailyChallengeModal';
+import { submitHighScore, submitDailyHighScore } from './utils/leaderboardStore';
+import {
+  getDailyChallenge,
+  getDailyChallengeRecord,
+  saveDailyChallengeRecord,
+  DailyChallengeInfo,
+  DailyChallengeRecord,
+} from './utils/dailyChallenge';
 import {
   GameState,
   SubmittedWord,
@@ -30,10 +42,10 @@ import { initDiscordSdk } from './utils/discordSdk';
 import { sound } from './utils/sound';
 
 export default function App() {
-  // Active Skin Selection ('gameboy' | 'nokia' | 'cyber')
+  // Active Skin Selection ('normal' | 'gameboy' | 'nokia' | 'cyber')
   const [currentSkin, setCurrentSkin] = useState<AppSkin>(() => {
     const saved = localStorage.getItem('anagram_skin_preference');
-    return (saved === 'gameboy' || saved === 'nokia' || saved === 'cyber') ? saved : 'gameboy';
+    return (saved === 'normal' || saved === 'gameboy' || saved === 'nokia' || saved === 'cyber') ? saved : 'normal';
   });
 
   // Always show Skin Selection GUI on start / launch
@@ -97,16 +109,41 @@ export default function App() {
 
   // Modals
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isHighScoresModalOpen, setIsHighScoresModalOpen] = useState(false);
+  const [isDailyChallengeModalOpen, setIsDailyChallengeModalOpen] = useState(false);
   const [isDictionaryModalOpen, setIsDictionaryModalOpen] = useState(false);
   const [isDiscordInviteModalOpen, setIsDiscordInviteModalOpen] = useState(false);
   const [isSecretModalOpen, setIsSecretModalOpen] = useState(false);
+  const [isRainbowActive, setIsRainbowActive] = useState(false);
   const [isMa9icUnlocked, setIsMa9icUnlocked] = useState<boolean>(() => {
     return localStorage.getItem('anagram_ma9ic_unlocked') === 'true';
   });
 
+  // Daily Challenge State
+  const [dailyInfo, setDailyInfo] = useState<DailyChallengeInfo | null>(() => getDailyChallenge());
+  const [dailyRecord, setDailyRecord] = useState<DailyChallengeRecord | null>(() => {
+    const daily = getDailyChallenge();
+    return getDailyChallengeRecord(daily.dateKey);
+  });
+  const [isCurrentGameDaily, setIsCurrentGameDaily] = useState(false);
+
+  // Refresh daily challenge on mount and periodically
+  useEffect(() => {
+    const checkDaily = () => {
+      const daily = getDailyChallenge();
+      setDailyInfo(daily);
+      setDailyRecord(getDailyChallengeRecord(daily.dateKey));
+    };
+    checkDaily();
+    const interval = setInterval(checkDaily, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Hacker Green / Ma9ic Unlock Handler
   const handleUnlockMa9ic = useCallback(() => {
     setIsMa9icUnlocked(true);
+    setIsRainbowActive(true);
+    sound.speakSecretUnlocked();
     localStorage.setItem('anagram_ma9ic_unlocked', 'true');
     setCurrentSkin('cyber');
     localStorage.setItem('anagram_skin_preference', 'cyber');
@@ -134,11 +171,17 @@ export default function App() {
   // Check URL challenge & Initialize Discord SDK on mount
   useEffect(() => {
     initDiscordSdk().then((res) => {
-      if (res.inDiscord && res.user) {
-        setProfile((prev) => ({
-          ...prev,
-          name: prev.name === 'Neo' || prev.name === 'Player 1' ? res.user!.username : prev.name,
-        }));
+      if (res.inDiscord && res.user && res.user.username) {
+        setProfile((prev) => {
+          const isDefaultName = !prev.name || prev.name === 'PLAYER 1' || prev.name === 'Neo' || prev.name === 'Player 1';
+          const updated: PlayerProfile = {
+            ...prev,
+            name: isDefaultName ? res.user!.username : prev.name,
+            customAvatarUrl: res.user!.avatarUrl || prev.customAvatarUrl,
+          };
+          saveProfile(updated);
+          return updated;
+        });
       }
     });
 
@@ -224,6 +267,7 @@ export default function App() {
 
   // Start a fresh Solo game
   const handleStartSolo = useCallback(() => {
+    setIsCurrentGameDaily(false);
     const puzzle = getRandomPuzzle(settings.wordLength);
     setCurrentPuzzle(puzzle);
     setPlayerWords([]);
@@ -240,9 +284,31 @@ export default function App() {
     setGameState('playing');
   }, [settings.wordLength, profile.name]);
 
+  // Start Daily Challenge
+  const handleStartDailyChallenge = useCallback(() => {
+    const daily = getDailyChallenge();
+    setDailyInfo(daily);
+    setIsCurrentGameDaily(true);
+    setCurrentPuzzle(daily.puzzle);
+    setPlayerWords([]);
+    setPlayerScore(0);
+    setOpponent(null);
+    setPassPlayState({
+      isPassPlay: false,
+      turn: 1,
+      p1Name: profile.name,
+      p2Name: 'PLAYER 2',
+      p1Words: [],
+      p1Score: 0,
+    });
+    setIsDailyChallengeModalOpen(false);
+    setGameState('playing');
+  }, [profile.name]);
+
   // Start match vs AI Bot
   const handleStartBotMatch = useCallback(
     (bot: BotPreset) => {
+      setIsCurrentGameDaily(false);
       const puzzle = getRandomPuzzle(settings.wordLength);
       setCurrentPuzzle(puzzle);
       setPlayerWords([]);
@@ -277,6 +343,7 @@ export default function App() {
   // Start 2-Player Pass & Play
   const handleStartPassPlay = useCallback(
     (p1?: string, p2?: string) => {
+      setIsCurrentGameDaily(false);
       const puzzle = getRandomPuzzle(settings.wordLength);
       const player1Name = (p1 && p1.trim()) || profile.name || 'PLAYER 1';
       const player2Name = (p2 && p2.trim()) || 'PLAYER 2';
@@ -301,6 +368,7 @@ export default function App() {
   // Accept incoming challenge
   const handleAcceptIncomingChallenge = useCallback(() => {
     if (!currentPuzzle) return;
+    setIsCurrentGameDaily(false);
     setPlayerWords([]);
     setPlayerScore(0);
     setPassPlayState({
@@ -317,6 +385,7 @@ export default function App() {
   // Launch custom puzzle from Discord invite generator
   const handleStartWithCustomPuzzle = useCallback(
     (puzzle: { root: string; scrambled: string; allValidWords: string[]; maxScore: number }) => {
+      setIsCurrentGameDaily(false);
       setCurrentPuzzle(puzzle);
       setPlayerWords([]);
       setPlayerScore(0);
@@ -337,6 +406,7 @@ export default function App() {
   // Load a friend's challenge code
   const handleLoadChallenge = useCallback(
     (input: string) => {
+      setIsCurrentGameDaily(false);
       const challenge = decodeMatchChallenge(input);
       if (challenge && challenge.root) {
         const root = challenge.root.toUpperCase();
@@ -424,9 +494,44 @@ export default function App() {
         return updated;
       });
 
+      // Submit to high score datastore
+      const bestWord = words.reduce((prevBest, cur) => (cur.score > prevBest.score ? cur : prevBest), words[0] || { word: '', score: 0 });
+
+      if (score > 0) {
+        submitHighScore({
+          playerName: profile.name,
+          avatarEmoji: profile.avatarEmoji,
+          avatarUrl: profile.customAvatarUrl,
+          score,
+          wordCount: words.length,
+          rootWord: currentPuzzle?.root || 'ANAGRAM',
+          bestWord: bestWord.word,
+          source: (window.location.hostname.includes('discordsays.com') || window.location.search.includes('frame_id')) ? 'discord' : 'web',
+        }).catch((err) => console.warn('Could not submit score to datastore:', err));
+      }
+
+      // Record daily challenge submission
+      if (isCurrentGameDaily && dailyInfo) {
+        const rec = saveDailyChallengeRecord(dailyInfo.dateKey, score, words.length, bestWord.word);
+        setDailyRecord(rec);
+
+        if (score > 0) {
+          submitDailyHighScore(dailyInfo.dateKey, {
+            playerName: profile.name,
+            avatarEmoji: profile.avatarEmoji,
+            avatarUrl: profile.customAvatarUrl,
+            score,
+            wordCount: words.length,
+            rootWord: dailyInfo.rootWord,
+            bestWord: bestWord.word,
+            source: (window.location.hostname.includes('discordsays.com') || window.location.search.includes('frame_id')) ? 'discord' : 'web',
+          }).catch((err) => console.warn('Could not submit daily high score:', err));
+        }
+      }
+
       setGameState('results');
     },
-    [passPlayState]
+    [passPlayState, profile, currentPuzzle, isCurrentGameDaily, dailyInfo]
   );
 
   // Physical Game Boy Button Action handlers
@@ -533,9 +638,14 @@ export default function App() {
           onStartSolo={handleStartSolo}
           onStartBotMatch={handleStartBotMatch}
           onStartPassPlay={handleStartPassPlay}
+          onStartDailyChallenge={handleStartDailyChallenge}
+          onOpenDailyLeaderboard={() => setIsDailyChallengeModalOpen(true)}
+          dailyInfo={dailyInfo}
+          dailyRecord={dailyRecord}
           onOpenDiscordInvite={() => setIsDiscordInviteModalOpen(true)}
           onAcceptIncomingChallenge={handleAcceptIncomingChallenge}
           onOpenProfile={() => setIsProfileModalOpen(true)}
+          onOpenHighScores={() => setIsHighScoresModalOpen(true)}
           onOpenSecretMenu={() => setIsSecretModalOpen(true)}
           isMa9icUnlocked={isMa9icUnlocked}
           onUpdateSettings={setSettings}
@@ -643,9 +753,13 @@ export default function App() {
           isPassPlay={passPlayState.isPassPlay}
           p1Name={passPlayState.p1Name}
           p2Name={passPlayState.p2Name}
-          onPlayAgain={handleStartSolo}
+          isDailyChallenge={isCurrentGameDaily}
+          dailyInfo={dailyInfo}
+          onPlayAgain={isCurrentGameDaily ? handleStartDailyChallenge : handleStartSolo}
           onRematchPassPlay={() => handleStartPassPlay(passPlayState.p1Name, passPlayState.p2Name)}
           onExitToLobby={() => setGameState('lobby')}
+          onOpenHighScores={() => setIsHighScoresModalOpen(true)}
+          onOpenDailyLeaderboard={() => setIsDailyChallengeModalOpen(true)}
           onOpenDiscordInvite={() => setIsDiscordInviteModalOpen(true)}
           onOpenDictionary={() => setIsDictionaryModalOpen(true)}
           onRevealOpponent={() => {
@@ -671,7 +785,11 @@ export default function App() {
       />
 
       {/* Primary Layout Wrapper depending on skin */}
-      {currentSkin === 'gameboy' ? (
+      {currentSkin === 'normal' ? (
+        <NormalConsole onOpenSkinSelect={() => setIsSkinModalOpen(true)}>
+          {renderInnerContent()}
+        </NormalConsole>
+      ) : currentSkin === 'gameboy' ? (
         <GameBoyConsole
           currentPalette={currentPalette}
           onPaletteChange={setCurrentPalette}
@@ -741,6 +859,29 @@ export default function App() {
           onClose={() => setIsDictionaryModalOpen(false)}
         />
       )}
+
+      <HighScoresModal
+        isOpen={isHighScoresModalOpen}
+        onClose={() => setIsHighScoresModalOpen(false)}
+        skin={currentSkin}
+      />
+
+      <DailyChallengeModal
+        isOpen={isDailyChallengeModalOpen}
+        onClose={() => setIsDailyChallengeModalOpen(false)}
+        onStartDailyChallenge={handleStartDailyChallenge}
+        onPlayDaily={handleStartDailyChallenge}
+        dailyInfo={dailyInfo}
+        playerProfile={profile}
+        dailyRecord={dailyRecord}
+        skin={currentSkin}
+      />
+
+      {/* Rotating Rainbow Fading Effect around GUI */}
+      <RainbowSecretEffect
+        isActive={isRainbowActive}
+        onComplete={() => setIsRainbowActive(false)}
+      />
     </>
   );
 }

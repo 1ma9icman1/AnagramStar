@@ -53,36 +53,43 @@ export const SkinSelectModal: React.FC<SkinSelectModalProps> = ({
   const isGb = selectedSkin === 'gameboy';
   const isNokia = selectedSkin === 'nokia';
   const isCyber = selectedSkin === 'cyber';
+  const isNormal = selectedSkin === 'normal';
 
-  let modalThemeClass = "border-[#00ff66] bg-[#050e08]/98 text-emerald-100 font-mono shadow-[0_0_30px_rgba(0,255,102,0.25)]";
+  let modalThemeClass = "border-amber-600/50 bg-slate-950/98 text-slate-100 font-sans shadow-[0_0_30px_rgba(245,158,11,0.25)]";
   if (isGb) {
     modalThemeClass = "border-[#00ff66] bg-black text-[#9bbc0f] font-['Press_Start_2P',monospace] shadow-[0_0_30px_rgba(0,0,0,0.9)]";
   } else if (isNokia) {
     modalThemeClass = "border-[#00ff66] bg-black text-[#9cb885] font-['Silkscreen',monospace] shadow-[0_0_30px_rgba(0,0,0,0.9)]";
+  } else if (isCyber) {
+    modalThemeClass = "border-[#00ff66] bg-[#050e08]/98 text-emerald-100 font-mono shadow-[0_0_30px_rgba(0,255,102,0.25)]";
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/95 backdrop-blur-lg animate-gb-pop">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/95 backdrop-blur-lg animate-gb-pop overflow-y-auto">
       <div
         id="skin-select-modal"
-        className={`w-full max-w-2xl border-2 p-4 sm:p-6 flex flex-col shadow-2xl transition-all duration-300 bg-black ${modalThemeClass}`}
+        className={`w-full max-w-4xl border-2 p-4 sm:p-6 flex flex-col shadow-2xl transition-all duration-300 bg-black my-auto ${modalThemeClass}`}
       >
         {/* Header */}
         <div
           className={`flex items-center justify-between pb-3 border-b-2 ${
-            isGb ? 'border-[#8bac0f]/40' : isNokia ? 'border-[#89a873]/40' : 'border-emerald-500/40'
+            isNormal
+              ? 'border-amber-700/50'
+              : isGb
+              ? 'border-[#8bac0f]/40'
+              : isNokia
+              ? 'border-[#89a873]/40'
+              : 'border-emerald-500/40'
           }`}
         >
           <div className="flex items-center gap-2">
-            <span className="text-base sm:text-lg">{isGb ? '👾' : isNokia ? '📱' : '⚡'}</span>
+            <span className="text-base sm:text-lg">{isNormal ? '🪵' : isGb ? '👾' : isNokia ? '📱' : '⚡'}</span>
             <div>
               <h2 className="text-xs sm:text-sm font-bold tracking-wider text-white">
-                {isGb ? 'SELECT INTERFACE' : isNokia ? 'SELECT DEVICE THEME' : 'INTERFACE SELECTION MATRIX'}
+                {isNormal ? 'SELECT GAME INTERFACE' : isGb ? 'SELECT INTERFACE' : isNokia ? 'SELECT DEVICE THEME' : 'INTERFACE SELECTION MATRIX'}
               </h2>
-              <p
-                className="text-[8px] sm:text-[9px] mt-0.5 text-neutral-400"
-              >
-                Choose your preferred visual & audio nostalgia experience
+              <p className="text-[8px] sm:text-[9px] mt-0.5 text-neutral-400">
+                Choose your preferred visual & audio nostalgia experience (4 Interface Options)
               </p>
             </div>
           </div>
@@ -91,7 +98,9 @@ export const SkinSelectModal: React.FC<SkinSelectModalProps> = ({
               type="button"
               onClick={onClose}
               className={`px-2 py-1 border text-xs cursor-pointer active:scale-95 bg-black ${
-                isGb
+                isNormal
+                  ? 'border-amber-600 text-amber-300 hover:bg-amber-900/50'
+                  : isGb
                   ? 'border-[#8bac0f] text-[#8bac0f] hover:bg-[#8bac0f] hover:text-black'
                   : isNokia
                   ? 'border-[#89a873] text-[#89a873] hover:bg-[#89a873] hover:text-black'
@@ -103,15 +112,66 @@ export const SkinSelectModal: React.FC<SkinSelectModalProps> = ({
           )}
         </div>
 
-        {/* 3 Skin Choice Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 my-4">
-          {/* 1. Game Boy DMG Skin */}
+        {/* 4 Skin Choice Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 my-4">
+          {/* 1. Normal / Original GamePigeon Classic Skin */}
+          <button
+            type="button"
+            onClick={() => handlePick('normal')}
+            className={`p-3 border-2 text-left flex flex-col justify-between transition-all cursor-pointer relative overflow-hidden bg-black rounded-lg ${
+              selectedSkin === 'normal'
+                ? 'border-amber-400 bg-amber-950/30 shadow-[0_0_20px_rgba(245,158,11,0.35)] scale-[1.02] text-amber-200 ring-2 ring-amber-400/50'
+                : 'border-neutral-800 opacity-70 hover:opacity-100 hover:border-neutral-600 text-neutral-400'
+            }`}
+          >
+            {selectedSkin === 'normal' && (
+              <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-amber-400 text-amber-950 text-[7px] font-extrabold rounded-sm shadow-xs">
+                ACTIVE
+              </div>
+            )}
+            <div>
+              <div className="flex items-center gap-1.5 mb-2">
+                <span className="text-xl">🪵</span>
+                <div>
+                  <div className="font-bold text-xs text-white">NORMAL</div>
+                  <div className="text-[7px] text-amber-400/90 font-medium">Original GamePigeon</div>
+                </div>
+              </div>
+
+              {/* Visual preview widget */}
+              <div className="my-2 p-2 border border-amber-900/60 bg-gradient-to-b from-slate-900 to-slate-950 text-amber-100 text-[7px] space-y-1.5 rounded-md shadow-inner">
+                <div className="flex justify-between items-center border-b border-slate-700/60 pb-1 text-[6px] text-slate-400">
+                  <span className="font-bold text-amber-300">FELT TABLE</span>
+                  <span className="text-emerald-400">● 60s</span>
+                </div>
+                <div className="flex gap-1 justify-center py-1">
+                  {['W', 'O', 'R', 'D'].map((char, i) => (
+                    <span
+                      key={i}
+                      className="px-1.5 py-1 border border-amber-700 bg-gradient-to-b from-amber-100 via-amber-300 to-amber-500 font-extrabold text-[8px] text-amber-950 rounded-sm shadow-sm"
+                    >
+                      {char}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <ul className="text-[7px] space-y-0.5 mt-2 text-slate-300">
+                <li>• Authentic 3D wood tiles</li>
+                <li>• Slate felt tabletop board</li>
+                <li>• Clean modern typography</li>
+                <li>• Original gameplay feel</li>
+              </ul>
+            </div>
+          </button>
+
+          {/* 2. Game Boy DMG Skin */}
           <button
             type="button"
             onClick={() => handlePick('gameboy')}
-            className={`p-3 border-2 text-left flex flex-col justify-between transition-all cursor-pointer relative overflow-hidden bg-black ${
+            className={`p-3 border-2 text-left flex flex-col justify-between transition-all cursor-pointer relative overflow-hidden bg-black rounded-lg ${
               selectedSkin === 'gameboy'
-                ? 'border-[#9bbc0f] shadow-[0_0_15px_rgba(155,188,15,0.4)] scale-[1.02] text-[#9bbc0f]'
+                ? 'border-[#9bbc0f] shadow-[0_0_15px_rgba(155,188,15,0.4)] scale-[1.02] text-[#9bbc0f] ring-2 ring-[#9bbc0f]/50'
                 : 'border-neutral-800 opacity-70 hover:opacity-100 hover:border-neutral-600 text-neutral-400'
             }`}
           >
@@ -130,7 +190,7 @@ export const SkinSelectModal: React.FC<SkinSelectModalProps> = ({
               </div>
 
               {/* Visual preview widget */}
-              <div className="my-2 p-1.5 border border-[#0f380f] bg-[#9bbc0f] text-[#0f380f] text-[7px] space-y-1">
+              <div className="my-2 p-1.5 border border-[#0f380f] bg-[#9bbc0f] text-[#0f380f] text-[7px] space-y-1 rounded-sm">
                 <div className="flex justify-between items-center border-b border-[#0f380f]/30 pb-0.5 text-[6px]">
                   <span>DMG-01</span>
                   <span>● BATTERY</span>
@@ -156,13 +216,13 @@ export const SkinSelectModal: React.FC<SkinSelectModalProps> = ({
             </div>
           </button>
 
-          {/* 2. Nokia 3310 Retro Phone Skin */}
+          {/* 3. Nokia 3310 Retro Phone Skin */}
           <button
             type="button"
             onClick={() => handlePick('nokia')}
-            className={`p-3 border-2 text-left flex flex-col justify-between transition-all cursor-pointer relative overflow-hidden bg-black ${
+            className={`p-3 border-2 text-left flex flex-col justify-between transition-all cursor-pointer relative overflow-hidden bg-black rounded-lg ${
               selectedSkin === 'nokia'
-                ? 'border-[#9cb885] shadow-[0_0_15px_rgba(156,184,133,0.4)] scale-[1.02] text-[#9cb885]'
+                ? 'border-[#9cb885] shadow-[0_0_15px_rgba(156,184,133,0.4)] scale-[1.02] text-[#9cb885] ring-2 ring-[#9cb885]/50'
                 : 'border-neutral-800 opacity-70 hover:opacity-100 hover:border-neutral-600 text-neutral-400'
             }`}
           >
@@ -181,7 +241,7 @@ export const SkinSelectModal: React.FC<SkinSelectModalProps> = ({
               </div>
 
               {/* Visual preview widget */}
-              <div className="my-2 p-1.5 border border-[#11240e] bg-[#9cb885] text-[#11240e] text-[7px] space-y-1">
+              <div className="my-2 p-1.5 border border-[#11240e] bg-[#9cb885] text-[#11240e] text-[7px] space-y-1 rounded-sm">
                 <div className="flex justify-between items-center border-b border-[#11240e]/30 pb-0.5 text-[6px]">
                   <span>📶 IIII</span>
                   <span>[||||]</span>
@@ -207,13 +267,13 @@ export const SkinSelectModal: React.FC<SkinSelectModalProps> = ({
             </div>
           </button>
 
-          {/* 3. Cyber Matrix Skin */}
+          {/* 4. Cyber Matrix Skin */}
           <button
             type="button"
             onClick={() => handlePick('cyber')}
-            className={`p-3 border-2 text-left flex flex-col justify-between transition-all cursor-pointer relative overflow-hidden bg-black ${
+            className={`p-3 border-2 text-left flex flex-col justify-between transition-all cursor-pointer relative overflow-hidden bg-black rounded-lg ${
               selectedSkin === 'cyber'
-                ? 'border-[#00ff66] bg-[#00ff66]/10 shadow-[0_0_20px_rgba(0,255,102,0.3)] scale-[1.02] text-[#00ff66]'
+                ? 'border-[#00ff66] bg-[#00ff66]/10 shadow-[0_0_20px_rgba(0,255,102,0.3)] scale-[1.02] text-[#00ff66] ring-2 ring-[#00ff66]/50'
                 : 'border-neutral-800 opacity-70 hover:opacity-100 hover:border-neutral-600 text-neutral-400'
             }`}
           >
@@ -227,12 +287,12 @@ export const SkinSelectModal: React.FC<SkinSelectModalProps> = ({
                 <span className="text-xl">💻</span>
                 <div>
                   <div className="font-bold text-xs text-white">CYBER MATRIX</div>
-                  <div className="text-[7px] text-emerald-400/70">Original Terminal HUD</div>
+                  <div className="text-[7px] text-emerald-400/70">Terminal HUD</div>
                 </div>
               </div>
 
               {/* Visual preview widget */}
-              <div className="my-2 p-1.5 border border-[#00ff66]/50 bg-black/60 text-[#00ff66] text-[7px] space-y-1">
+              <div className="my-2 p-1.5 border border-[#00ff66]/50 bg-black/60 text-[#00ff66] text-[7px] space-y-1 rounded-sm">
                 <div className="flex justify-between items-center border-b border-emerald-800/40 pb-0.5 text-[6px]">
                   <span>CYBER DECK</span>
                   <span className="text-emerald-400">⚡ LIVE</span>
@@ -265,7 +325,7 @@ export const SkinSelectModal: React.FC<SkinSelectModalProps> = ({
             type="checkbox"
             checked={rememberChoice}
             onChange={(e) => setRememberChoice(e.target.checked)}
-            className="w-3.5 h-3.5 accent-[#00ff66] cursor-pointer"
+            className="w-3.5 h-3.5 accent-amber-500 cursor-pointer"
           />
           <span>
             Remember preference for future launches (switch anytime via the top bar)
@@ -277,15 +337,17 @@ export const SkinSelectModal: React.FC<SkinSelectModalProps> = ({
           <button
             type="button"
             onClick={handleConfirm}
-            className={`w-full py-2.5 sm:py-3 border-2 font-bold text-[9px] sm:text-[10px] text-center cursor-pointer transition-all active:scale-[0.98] ${
-              isGb
+            className={`w-full py-2.5 sm:py-3 border-2 font-bold text-[9px] sm:text-[10px] text-center cursor-pointer transition-all active:scale-[0.98] rounded-lg ${
+              isNormal
+                ? 'border-amber-400 bg-gradient-to-r from-amber-500 to-amber-600 text-amber-950 font-extrabold shadow-[0_0_20px_rgba(245,158,11,0.4)] hover:brightness-110'
+                : isGb
                 ? 'border-[#9bbc0f] bg-[#9bbc0f] text-black shadow-[0_0_15px_rgba(155,188,15,0.4)] hover:bg-[#b0d815]'
                 : isNokia
                 ? 'border-[#9cb885] bg-[#9cb885] text-black shadow-[0_0_15px_rgba(156,184,133,0.4)] hover:bg-[#b4d69c]'
                 : 'border-[#00ff66] bg-[#00ff66] text-black shadow-[0_0_20px_rgba(0,255,102,0.4)] hover:bg-[#33ff88]'
             }`}
           >
-            ► ENTER WITH {selectedSkin === 'gameboy' ? 'GAME BOY SKIN' : selectedSkin === 'nokia' ? 'NOKIA 3310 SKIN' : 'ORIGINAL CYBER SKIN'}
+            ► ENTER WITH {selectedSkin === 'normal' ? 'NORMAL (ORIGINAL) SKIN' : selectedSkin === 'gameboy' ? 'GAME BOY SKIN' : selectedSkin === 'nokia' ? 'NOKIA 3310 SKIN' : 'CYBER MATRIX SKIN'}
           </button>
         </div>
       </div>
