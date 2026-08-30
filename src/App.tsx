@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameBoyConsole, LcdPalette } from './components/GameBoyConsole';
 import { CyberConsole } from './components/CyberConsole';
+import { NokiaConsole } from './components/NokiaConsole';
 import { SkinSelectModal } from './components/SkinSelectModal';
 import { GameBoard, GameBoardHandle } from './components/GameBoard';
 import { ResultsView, ResultsViewHandle } from './components/ResultsView';
@@ -28,10 +29,10 @@ import { initDiscordSdk } from './utils/discordSdk';
 import { sound } from './utils/sound';
 
 export default function App() {
-  // Active Skin Selection ('gameboy' | 'cyber')
+  // Active Skin Selection ('gameboy' | 'nokia' | 'cyber')
   const [currentSkin, setCurrentSkin] = useState<AppSkin>(() => {
     const saved = localStorage.getItem('anagram_skin_preference');
-    return (saved === 'gameboy' || saved === 'cyber') ? saved : 'gameboy';
+    return (saved === 'gameboy' || saved === 'nokia' || saved === 'cyber') ? saved : 'gameboy';
   });
 
   // Modal to select skin on load or via switcher
@@ -453,6 +454,12 @@ export default function App() {
     }
   };
 
+  const handleConsoleKeypadDigit = (digit: string) => {
+    if (gameState === 'playing') {
+      gameBoardRef.current?.handleKeypadDigit?.(digit);
+    }
+  };
+
   // Shared Inner View Content
   const renderInnerContent = () => (
     <>
@@ -615,6 +622,19 @@ export default function App() {
         >
           {renderInnerContent()}
         </GameBoyConsole>
+      ) : currentSkin === 'nokia' ? (
+        <NokiaConsole
+          onAPress={handleConsoleAPress}
+          onBPress={handleConsoleBPress}
+          onSelectPress={handleConsoleSelectPress}
+          onStartPress={handleConsoleStartPress}
+          onDpadPress={handleConsoleDpadPress}
+          onKeypadDigit={handleConsoleKeypadDigit}
+          onOpenSkinSelect={() => setIsSkinModalOpen(true)}
+          isSoundEnabled={settings.soundEnabled}
+        >
+          {renderInnerContent()}
+        </NokiaConsole>
       ) : (
         <CyberConsole onOpenSkinSelect={() => setIsSkinModalOpen(true)}>
           {renderInnerContent()}

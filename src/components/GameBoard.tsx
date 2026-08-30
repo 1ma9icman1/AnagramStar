@@ -11,6 +11,7 @@ export interface GameBoardHandle {
   handleSelectPress: () => void;
   handleStartPress: () => void;
   handleDpadPress: (dir: 'up' | 'down' | 'left' | 'right') => void;
+  handleKeypadDigit?: (digit: string) => void;
 }
 
 interface GameBoardProps {
@@ -115,27 +116,43 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
   };
 
   const handleRackTileClick = useCallback((tile: TileLetter) => {
-    sound.playTileClick();
+    if (skin === 'nokia') {
+      sound.playNokiaKeyBeep();
+    } else {
+      sound.playTileClick();
+    }
     setRackLetters((prev) => prev.filter((t) => t.id !== tile.id));
     setSlottedLetters((prev) => [...prev, tile]);
-  }, []);
+  }, [skin]);
 
   const handleSlotTileClick = useCallback((tile: TileLetter) => {
-    sound.playTileReturn();
+    if (skin === 'nokia') {
+      sound.playNokiaKeyBeep('C');
+    } else {
+      sound.playTileReturn();
+    }
     setSlottedLetters((prev) => prev.filter((t) => t.id !== tile.id));
     setRackLetters((prev) => [...prev, tile]);
-  }, []);
+  }, [skin]);
 
   const handleClearSlots = useCallback(() => {
     if (slottedLetters.length === 0) {
-      sound.playInvalidWord();
+      if (skin === 'nokia') {
+        sound.playNokiaError();
+      } else {
+        sound.playInvalidWord();
+      }
       showToast('NO LETTERS SLOTTED', 'error');
       return;
     }
-    sound.playTileReturn();
+    if (skin === 'nokia') {
+      sound.playNokiaKeyBeep('C');
+    } else {
+      sound.playTileReturn();
+    }
     setRackLetters((prev) => [...prev, ...slottedLetters]);
     setSlottedLetters([]);
-  }, [slottedLetters]);
+  }, [slottedLetters, skin]);
 
   const handleShuffle = useCallback(() => {
     sound.playShuffle();
@@ -144,7 +161,11 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
 
   const handleSubmitWord = useCallback(() => {
     if (slottedLetters.length === 0) {
-      sound.playInvalidWord();
+      if (skin === 'nokia') {
+        sound.playNokiaError();
+      } else {
+        sound.playInvalidWord();
+      }
       setIsShakeError(true);
       showToast('SPELL A WORD FIRST', 'error');
       setTimeout(() => setIsShakeError(false), 350);
@@ -152,7 +173,11 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
     }
 
     if (slottedLetters.length < 3) {
-      sound.playInvalidWord();
+      if (skin === 'nokia') {
+        sound.playNokiaError();
+      } else {
+        sound.playInvalidWord();
+      }
       setIsShakeError(true);
       showToast('NEED 3+ LETTERS', 'error');
       setTimeout(() => setIsShakeError(false), 350);
@@ -163,7 +188,11 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
 
     const alreadyFound = submittedWords.some((w) => w.word === currentWord);
     if (alreadyFound) {
-      sound.playInvalidWord();
+      if (skin === 'nokia') {
+        sound.playNokiaError();
+      } else {
+        sound.playInvalidWord();
+      }
       setIsShakeError(true);
       showToast('ALREADY FOUND', 'error');
       setTimeout(() => setIsShakeError(false), 350);
@@ -172,7 +201,11 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
 
     if (DICTIONARY.has(currentWord)) {
       const wordScore = calculateWordScore(currentWord);
-      sound.playValidWord(currentWord.length);
+      if (skin === 'nokia') {
+        sound.playNokiaSnakeBite();
+      } else {
+        sound.playValidWord(currentWord.length);
+      }
 
       const newSubmitted: SubmittedWord = {
         word: currentWord,
@@ -189,14 +222,18 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
       setSlottedLetters([]);
       setFocusedRackIndex(0);
     } else {
-      sound.playInvalidWord();
+      if (skin === 'nokia') {
+        sound.playNokiaError();
+      } else {
+        sound.playInvalidWord();
+      }
       setIsShakeError(true);
       showToast('NOT IN DICTIONARY', 'error');
       setTimeout(() => setIsShakeError(false), 350);
     }
-  }, [slottedLetters, submittedWords]);
+  }, [slottedLetters, submittedWords, skin]);
 
-  // Controller Actions exposed to App and Physical Game Boy buttons
+  // Controller Actions exposed to App, Physical Game Boy and Nokia buttons
   const handleAPress = useCallback(() => {
     if (slottedLetters.length >= 3) {
       handleSubmitWord();
@@ -220,10 +257,14 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
       const lastTile = slottedLetters[slottedLetters.length - 1];
       handleSlotTileClick(lastTile);
     } else {
-      sound.playTileReturn();
+      if (skin === 'nokia') {
+        sound.playNokiaKeyBeep('C');
+      } else {
+        sound.playTileReturn();
+      }
       showToast('SLOTS EMPTY (MENU)', 'error');
     }
-  }, [slottedLetters, handleSlotTileClick]);
+  }, [slottedLetters, handleSlotTileClick, skin]);
 
   const handleSelectPress = useCallback(() => {
     handleShuffle();
@@ -234,15 +275,55 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
     handleSubmitWord();
   }, [handleSubmitWord]);
 
+  const handleKeypadDigit = useCallback((digit: string) => {
+    const keypadMap: Record<string, string[]> = {
+      '2': ['A', 'B', 'C'],
+      '3': ['D', 'E', 'F'],
+      '4': ['G', 'H', 'I'],
+      '5': ['J', 'K', 'L'],
+      '6': ['M', 'N', 'O'],
+      '7': ['P', 'Q', 'R', 'S'],
+      '8': ['T', 'U', 'V'],
+      '9': ['W', 'X', 'Y', 'Z'],
+    };
+
+    if (digit === '1') {
+      handleBPress();
+      return;
+    }
+
+    const letters = keypadMap[digit];
+    if (letters) {
+      const matchingTile = rackLetters.find((t) => letters.includes(t.letter));
+      if (matchingTile) {
+        handleRackTileClick(matchingTile);
+      } else {
+        if (skin === 'nokia') {
+          sound.playNokiaError();
+        } else {
+          sound.playInvalidWord();
+        }
+      }
+    }
+  }, [rackLetters, handleRackTileClick, handleBPress, skin]);
+
   const handleDpadPress = useCallback((dir: 'up' | 'down' | 'left' | 'right') => {
     if (dir === 'left') {
       if (rackLetters.length > 0) {
-        sound.playTileClick();
+        if (skin === 'nokia') {
+          sound.playNokiaKeyBeep(4);
+        } else {
+          sound.playTileClick();
+        }
         setFocusedRackIndex((prev) => (prev - 1 + rackLetters.length) % rackLetters.length);
       }
     } else if (dir === 'right') {
       if (rackLetters.length > 0) {
-        sound.playTileClick();
+        if (skin === 'nokia') {
+          sound.playNokiaKeyBeep(6);
+        } else {
+          sound.playTileClick();
+        }
         setFocusedRackIndex((prev) => (prev + 1) % rackLetters.length);
       }
     } else if (dir === 'up') {
@@ -258,7 +339,7 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
         handleSlotTileClick(lastTile);
       }
     }
-  }, [rackLetters, focusedRackIndex, slottedLetters, handleRackTileClick, handleSlotTileClick]);
+  }, [rackLetters, focusedRackIndex, slottedLetters, handleRackTileClick, handleSlotTileClick, skin]);
 
   // Imperative handle for parent
   useImperativeHandle(ref, () => ({
@@ -267,7 +348,8 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(({
     handleSelectPress,
     handleStartPress,
     handleDpadPress,
-  }), [handleAPress, handleBPress, handleSelectPress, handleStartPress, handleDpadPress]);
+    handleKeypadDigit,
+  }), [handleAPress, handleBPress, handleSelectPress, handleStartPress, handleDpadPress, handleKeypadDigit]);
 
   // Keyboard controls
   useEffect(() => {

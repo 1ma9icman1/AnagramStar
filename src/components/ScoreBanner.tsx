@@ -24,6 +24,7 @@ export const ScoreBanner: React.FC<ScoreBannerProps> = ({
   skin = 'gameboy',
 }) => {
   const isCyber = skin === 'cyber';
+  const isNokia = skin === 'nokia';
 
   if (isCyber) {
     return (
@@ -55,6 +56,42 @@ export const ScoreBanner: React.FC<ScoreBannerProps> = ({
           <div className="text-[9px] font-mono text-emerald-400">SCORE</div>
           <div className="text-sm font-mono font-black text-white matrix-glow-text">
             {isOpponent && score === -1 ? '????' : score.toLocaleString()}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isNokia) {
+    return (
+      <div
+        id={id || `nokia-hud-banner-${isOpponent ? 'opp' : 'user'}`}
+        className={`
+          border-2 border-[#11240e] bg-[#a9c792] text-[#11240e] rounded-sm
+          ${compact ? 'px-2 py-1' : 'px-3 py-1.5 max-w-sm w-full mx-auto'}
+          flex items-center justify-between select-none shadow-[1px_1px_0_#11240e]
+        `}
+      >
+        {/* Player info */}
+        <div className="flex items-center gap-1.5 min-w-0">
+          <div className="w-6 h-6 border border-[#11240e] bg-[#9cb885] flex items-center justify-center text-xs shrink-0 rounded-xs">
+            {avatarEmoji}
+          </div>
+          <div className="flex flex-col min-w-0">
+            <div className="text-[9px] font-['Silkscreen',monospace] font-bold text-[#11240e] truncate max-w-[100px]">
+              {playerName || (isOpponent ? 'OPPONENT' : 'CALLER 1')}
+            </div>
+            <div className="text-[7px] font-['Silkscreen',monospace] text-[#1a3814]">
+              WORDS: {isOpponent && score === -1 ? '??' : wordsCount}
+            </div>
+          </div>
+        </div>
+
+        {/* Score */}
+        <div className="text-right shrink-0">
+          <div className="text-[7px] font-['Silkscreen',monospace] text-[#1a3814]">PTS</div>
+          <div className="text-xs font-['Silkscreen',monospace] font-bold text-[#11240e]">
+            {isOpponent && score === -1 ? '??' : score.toLocaleString()}
           </div>
         </div>
       </div>

@@ -25,6 +25,7 @@ export const WoodTile: React.FC<WoodTileProps> = ({
   skin = 'gameboy',
 }) => {
   const isCyber = skin === 'cyber';
+  const isNokia = skin === 'nokia';
 
   const sizeClasses = {
     mini: 'w-6 h-6 sm:w-7 sm:h-7 text-[10px] sm:text-xs rounded-sm',
@@ -33,9 +34,12 @@ export const WoodTile: React.FC<WoodTileProps> = ({
     large: 'w-12 h-13 sm:w-14 sm:h-15 text-lg sm:text-xl rounded-md',
   }[size];
 
-  const skinClasses = isCyber
-    ? `matrix-tile ${isSlotted ? 'ring-2 ring-[#00ffcc] scale-105' : ''} ${isSelected ? 'border-[#00ffcc] text-white shadow-[0_0_20px_#00ffcc]' : ''}`
-    : `gb-tile ${isSlotted ? 'ring-2 ring-[var(--lcd-darkest,#0f380f)] scale-105' : ''} ${isSelected ? 'bg-[var(--lcd-dark,#306230)] text-[var(--lcd-bg-light,#9bbc0f)]' : ''}`;
+  let skinClasses = `gb-tile ${isSlotted ? 'ring-2 ring-[var(--lcd-darkest,#0f380f)] scale-105' : ''} ${isSelected ? 'bg-[var(--lcd-dark,#306230)] text-[var(--lcd-bg-light,#9bbc0f)]' : ''}`;
+  if (isCyber) {
+    skinClasses = `matrix-tile ${isSlotted ? 'ring-2 ring-[#00ffcc] scale-105' : ''} ${isSelected ? 'border-[#00ffcc] text-white shadow-[0_0_20px_#00ffcc]' : ''}`;
+  } else if (isNokia) {
+    skinClasses = `nokia-tile ${isSlotted ? 'ring-2 ring-[#11240e] scale-105' : ''} ${isSelected ? 'bg-[#11240e] text-[#9cb885]' : ''}`;
+  }
 
   return (
     <button
@@ -52,7 +56,7 @@ export const WoodTile: React.FC<WoodTileProps> = ({
         ${className}
       `}
     >
-      <span className={`leading-none ${isCyber ? 'font-mono tracking-wider' : "font-['Press_Start_2P',monospace]"}`}>
+      <span className={`leading-none ${isCyber ? 'font-mono tracking-wider' : isNokia ? "font-['Silkscreen',monospace]" : "font-['Press_Start_2P',monospace]"}`}>
         {letter.toUpperCase()}
       </span>
     </button>

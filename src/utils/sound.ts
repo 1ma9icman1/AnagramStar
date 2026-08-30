@@ -284,6 +284,187 @@ class SoundEngine {
       });
     } catch {}
   }
+
+  // ==========================================
+  // NOKIA 3310 MONOPHONIC SOUND EFFECTS
+  // ==========================================
+
+  // Legendary Monophonic Nokia Tune (Gran Vals by Francisco Tárrega)
+  public playNokiaTune() {
+    if (!this.enabled) return;
+    try {
+      this.initCtx();
+      if (!this.ctx) return;
+
+      // Classic Nokia 3310 ringtone note frequencies and durations
+      const notes = [
+        { f: 1318.51, d: 0.14 }, // E6
+        { f: 1174.66, d: 0.14 }, // D6
+        { f: 739.99,  d: 0.28 }, // F#5
+        { f: 830.61,  d: 0.28 }, // G#5
+        { f: 1108.73, d: 0.14 }, // C#6
+        { f: 987.77,  d: 0.14 }, // B5
+        { f: 587.33,  d: 0.28 }, // D5
+        { f: 659.25,  d: 0.28 }, // E5
+        { f: 987.77,  d: 0.14 }, // B5
+        { f: 880.00,  d: 0.14 }, // A5
+        { f: 554.37,  d: 0.28 }, // C#5
+        { f: 659.25,  d: 0.28 }, // E5
+        { f: 880.00,  d: 0.55 }, // A5 (finale hold)
+      ];
+
+      let elapsed = 0;
+      notes.forEach((note) => {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'square'; // Authentic Nokia piezo buzzer tone
+        const startTime = this.ctx.currentTime + elapsed;
+        osc.frequency.setValueAtTime(note.f, startTime);
+
+        gain.gain.setValueAtTime(0.18, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + note.d * 0.95);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(startTime);
+        osc.stop(startTime + note.d);
+        elapsed += note.d * 1.05;
+      });
+    } catch {}
+  }
+
+  // Classic Nokia Keypad Beep (Monophonic DTMF-like pure beep)
+  public playNokiaKeyBeep(keyNumber?: number | string) {
+    if (!this.enabled) return;
+    try {
+      this.initCtx();
+      if (!this.ctx) return;
+
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      // Slightly varying frequencies for 1-9 keypad feel
+      let freq = 1200;
+      if (typeof keyNumber === 'number') {
+        freq = 800 + keyNumber * 75;
+      } else if (keyNumber === '*') {
+        freq = 750;
+      } else if (keyNumber === '#') {
+        freq = 1500;
+      }
+
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+
+      gain.gain.setValueAtTime(0.14, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.045);
+    } catch {}
+  }
+
+  // Nokia SMS Alert (Morse Code for SMS: ... -- ...)
+  public playNokiaSMS() {
+    if (!this.enabled) return;
+    try {
+      this.initCtx();
+      if (!this.ctx) return;
+
+      const f = 1400; // Classic high piercing SMS beep
+      const pattern = [
+        { type: 'dot', d: 0.06, g: 0.04 },
+        { type: 'dot', d: 0.06, g: 0.04 },
+        { type: 'dot', d: 0.06, g: 0.12 },
+        { type: 'dash', d: 0.16, g: 0.06 },
+        { type: 'dash', d: 0.16, g: 0.12 },
+        { type: 'dot', d: 0.06, g: 0.04 },
+        { type: 'dot', d: 0.06, g: 0.04 },
+        { type: 'dot', d: 0.06, g: 0.04 },
+      ];
+
+      let elapsed = 0;
+      pattern.forEach((p) => {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'square';
+        const startTime = this.ctx.currentTime + elapsed;
+        osc.frequency.setValueAtTime(f, startTime);
+
+        gain.gain.setValueAtTime(0.15, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + p.d);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(startTime);
+        osc.stop(startTime + p.d);
+        elapsed += p.d + p.g;
+      });
+    } catch {}
+  }
+
+  // Nokia Snake Eating Crunch / High Blip
+  public playNokiaSnakeBite() {
+    if (!this.enabled) return;
+    try {
+      this.initCtx();
+      if (!this.ctx) return;
+
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(987.77, this.ctx.currentTime); // B5
+      osc.frequency.setValueAtTime(1975.53, this.ctx.currentTime + 0.03); // B6
+
+      gain.gain.setValueAtTime(0.16, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.07);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.075);
+    } catch {}
+  }
+
+  // Nokia Low Battery / Error Boop-Boop
+  public playNokiaError() {
+    if (!this.enabled) return;
+    try {
+      this.initCtx();
+      if (!this.ctx) return;
+
+      const beeps = [400, 300];
+      beeps.forEach((freq, idx) => {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'square';
+        const startTime = this.ctx.currentTime + idx * 0.09;
+        osc.frequency.setValueAtTime(freq, startTime);
+
+        gain.gain.setValueAtTime(0.2, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.07);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(startTime);
+        osc.stop(startTime + 0.08);
+      });
+    } catch {}
+  }
 }
 
 export const sound = new SoundEngine();
