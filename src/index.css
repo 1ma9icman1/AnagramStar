@@ -1,144 +1,248 @@
 @import "tailwindcss";
 
 @layer utilities {
-  /* Matrix / Neo Hacker Terminal Background Canvas */
-  .bg-matrix-pattern {
-    background-color: #030a06;
+  /* Game Boy DMG Console Shell Base */
+  .gb-shell {
+    background: #d8d6ce;
     background-image: 
-      radial-gradient(circle at 50% 20%, rgba(0, 255, 102, 0.08) 0%, transparent 70%),
-      linear-gradient(rgba(0, 255, 102, 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0, 255, 102, 0.04) 1px, transparent 1px);
-    background-size: 100% 100%, 24px 24px, 24px 24px;
-    background-position: 0 0, -1px -1px, -1px -1px;
+      radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.4) 0%, transparent 60%),
+      linear-gradient(180deg, #dfddd5 0%, #d1cfc7 50%, #c4c2ba 100%);
+    box-shadow: 
+      0 20px 40px rgba(0, 0, 0, 0.6),
+      0 4px 10px rgba(0, 0, 0, 0.4),
+      inset 0 2px 3px rgba(255, 255, 255, 0.8),
+      inset 0 -4px 6px rgba(0, 0, 0, 0.25),
+      inset 3px 0 3px rgba(255, 255, 255, 0.4),
+      inset -3px 0 3px rgba(0, 0, 0, 0.15);
   }
 
-  /* CRT Scanlines Overlay */
-  .crt-scanlines {
+  /* Game Boy Screen Bezel (Dark Gray Glass Surround) */
+  .gb-bezel {
+    background: #6e727a;
+    background-image: linear-gradient(180deg, #7a7e86 0%, #686c74 70%, #5c6068 100%);
+    box-shadow: 
+      inset 0 3px 6px rgba(0, 0, 0, 0.7),
+      inset 0 -2px 4px rgba(255, 255, 255, 0.2),
+      0 2px 4px rgba(0, 0, 0, 0.25);
+    border: 2px solid #54575e;
+  }
+
+  /* LCD Screen Well (Deep Recessed display frame) */
+  .gb-lcd-well {
+    box-shadow: 
+      inset 0 4px 10px rgba(0, 0, 0, 0.85),
+      inset 0 1px 3px rgba(0, 0, 0, 0.95),
+      0 1px 1px rgba(255, 255, 255, 0.3);
+  }
+
+  /* LCD Palettes */
+  /* 1. Classic DMG-01 (Pea Soup 1989) */
+  .palette-dmg {
+    --lcd-bg: #8bac0f;
+    --lcd-bg-light: #9bbc0f;
+    --lcd-dark: #306230;
+    --lcd-darkest: #0f380f;
+    --lcd-grid: rgba(15, 56, 15, 0.08);
+    background-color: #8bac0f;
+    color: #0f380f;
+  }
+
+  /* 2. Game Boy Pocket (1996 Silver Mono) */
+  .palette-pocket {
+    --lcd-bg: #c4cfa1;
+    --lcd-bg-light: #d6e0b3;
+    --lcd-dark: #4d533c;
+    --lcd-darkest: #1b1f14;
+    --lcd-grid: rgba(27, 31, 20, 0.07);
+    background-color: #c4cfa1;
+    color: #1b1f14;
+  }
+
+  /* 3. Game Boy Light (1998 Indiglo Aqua Backlight) */
+  .palette-light {
+    --lcd-bg: #00b395;
+    --lcd-bg-light: #00cca8;
+    --lcd-dark: #00594c;
+    --lcd-darkest: #002e27;
+    --lcd-grid: rgba(0, 46, 39, 0.09);
+    background-color: #00b395;
+    color: #002e27;
+  }
+
+  /* 4. Game Boy Color (1998 Vivid Retro) */
+  .palette-gbc {
+    --lcd-bg: #90d8a0;
+    --lcd-bg-light: #a4e6b2;
+    --lcd-dark: #205c48;
+    --lcd-darkest: #0a241b;
+    --lcd-grid: rgba(10, 36, 27, 0.07);
+    background-color: #90d8a0;
+    color: #0a241b;
+  }
+
+  /* Realistic LCD Matrix Pixel Grid Overlay */
+  .lcd-pixel-grid {
+    background-image: 
+      linear-gradient(var(--lcd-grid, rgba(15, 56, 15, 0.09)) 1px, transparent 1px),
+      linear-gradient(90deg, var(--lcd-grid, rgba(15, 56, 15, 0.09)) 1px, transparent 1px);
+    background-size: 3px 3px;
+  }
+
+  /* LCD Glass Reflection Glare (Diagonal 45deg) */
+  .lcd-glare {
     background: linear-gradient(
-      rgba(18, 16, 16, 0) 50%, 
-      rgba(0, 0, 0, 0.25) 50%
+      135deg,
+      rgba(255, 255, 255, 0.14) 0%,
+      rgba(255, 255, 255, 0.04) 30%,
+      transparent 50%,
+      rgba(255, 255, 255, 0.03) 80%,
+      transparent 100%
     );
-    background-size: 100% 4px;
     pointer-events: none;
   }
 
-  /* Matrix / Cyberpunk Glowing Data Keycap Tile */
-  .matrix-tile {
-    background: linear-gradient(180deg, #0d2818 0%, #05190d 55%, #020d06 100%);
+  /* D-PAD Cross Styling */
+  .gb-dpad-center {
+    background: radial-gradient(circle, #1a1a1c 0%, #2a2a2d 100%);
     box-shadow: 
-      0 4px 0 #013813,
-      0 0 14px rgba(0, 255, 102, 0.35),
-      0 6px 12px rgba(0, 0, 0, 0.8),
-      inset 0 1px 1px rgba(0, 255, 136, 0.6),
-      inset 0 -1px 2px rgba(0, 0, 0, 0.7);
-    border: 1px solid #00ff66;
-    color: #00ff66;
-    text-shadow: 0 0 8px rgba(0, 255, 102, 0.8), 0 0 16px rgba(0, 255, 102, 0.4);
-    font-family: 'Orbitron', 'Share Tech Mono', monospace;
+      0 4px 6px rgba(0, 0, 0, 0.6),
+      inset 0 1px 1px rgba(255, 255, 255, 0.25),
+      inset 0 -2px 4px rgba(0, 0, 0, 0.7);
   }
 
-  .matrix-tile:hover:not(:disabled) {
+  .gb-dpad-btn {
+    background: linear-gradient(180deg, #323236 0%, #202022 100%);
     box-shadow: 
-      0 4px 0 #00ff66,
-      0 0 20px rgba(0, 255, 102, 0.6),
-      0 6px 14px rgba(0, 0, 0, 0.9),
-      inset 0 1px 2px rgba(255, 255, 255, 0.8);
-    border-color: #55ff99;
-    color: #ffffff;
+      0 3px 5px rgba(0, 0, 0, 0.5),
+      inset 0 1px 1px rgba(255, 255, 255, 0.2);
   }
 
-  .matrix-tile:active:not(:disabled) {
-    transform: translateY(3px);
+  .gb-dpad-btn:active {
+    background: #18181a;
     box-shadow: 
-      0 1px 0 #013813,
-      0 0 10px rgba(0, 255, 102, 0.4),
-      inset 0 1px 1px rgba(0, 255, 136, 0.4);
+      0 1px 2px rgba(0, 0, 0, 0.6),
+      inset 0 2px 3px rgba(0, 0, 0, 0.8);
+    transform: translateY(1px);
   }
 
-  /* Compact matrix tile for results & mini lists */
-  .matrix-tile-mini {
-    background: linear-gradient(180deg, #0e2d1a 0%, #071c0f 60%, #031008 100%);
+  /* A & B Action Buttons (Magenta / Burgundy DMG Classic) */
+  .gb-action-btn {
+    background: linear-gradient(180deg, #a81c4c 0%, #85133b 60%, #6e0d2f 100%);
     box-shadow: 
-      0 2px 0 #004d1a,
-      0 0 8px rgba(0, 255, 102, 0.3),
-      inset 0 1px 0.5px rgba(0, 255, 136, 0.5);
-    border: 1px solid #00ff66;
-    color: #00ff66;
-    text-shadow: 0 0 5px rgba(0, 255, 102, 0.7);
-    font-family: 'Orbitron', 'Share Tech Mono', monospace;
+      0 4px 6px rgba(0, 0, 0, 0.6),
+      0 2px 0 #520922,
+      inset 0 2px 2px rgba(255, 255, 255, 0.4),
+      inset 0 -2px 3px rgba(0, 0, 0, 0.5);
+    border: 1px solid #991440;
   }
 
-  /* Cyber Slotted Socket */
-  .matrix-slot-well {
-    background: #040e07;
+  .gb-action-btn:hover {
+    background: linear-gradient(180deg, #b82255 0%, #941743 60%, #7d1036 100%);
+  }
+
+  .gb-action-btn:active {
+    transform: translateY(2px);
     box-shadow: 
-      inset 0 4px 10px rgba(0, 0, 0, 0.8),
-      inset 0 0 8px rgba(0, 255, 102, 0.15),
-      0 0 1px rgba(0, 255, 102, 0.3);
-    border: 1px dashed rgba(0, 255, 102, 0.35);
+      0 1px 2px rgba(0, 0, 0, 0.6),
+      0 0 0 #520922,
+      inset 0 2px 4px rgba(0, 0, 0, 0.6);
   }
 
-  /* Matrix Cyber Terminal HUD Banner */
-  .matrix-hud-banner {
-    background: linear-gradient(135deg, rgba(3, 20, 10, 0.95) 0%, rgba(1, 12, 6, 0.98) 100%);
-    border: 1px solid #00ff66;
+  /* SELECT & START Rubber Pill Buttons */
+  .gb-pill-btn {
+    background: linear-gradient(180deg, #6c6d72 0%, #4e4f54 100%);
     box-shadow: 
-      0 0 20px rgba(0, 255, 102, 0.25),
-      inset 0 0 15px rgba(0, 255, 102, 0.08);
-    position: relative;
-    clip-path: polygon(
-      0% 8px, 8px 0%, 
-      calc(100% - 8px) 0%, 100% 8px, 
-      100% calc(100% - 8px), calc(100% - 8px) 100%, 
-      8px 100%, 0% calc(100% - 8px)
-    );
+      0 2px 3px rgba(0, 0, 0, 0.5),
+      inset 0 1px 1px rgba(255, 255, 255, 0.3),
+      inset 0 -1px 2px rgba(0, 0, 0, 0.6);
   }
 
-  .matrix-glow-text {
-    text-shadow: 0 0 8px rgba(0, 255, 102, 0.8), 0 0 18px rgba(0, 255, 102, 0.4);
+  .gb-pill-btn:active {
+    transform: translateY(1px);
+    background: #3c3d40;
+    box-shadow: 
+      inset 0 1px 2px rgba(0, 0, 0, 0.8);
   }
 
-  .matrix-glow-cyan {
-    text-shadow: 0 0 8px rgba(0, 255, 234, 0.8), 0 0 18px rgba(0, 255, 234, 0.4);
+  /* Game Boy Retro Tile on LCD */
+  .gb-tile {
+    background: var(--lcd-bg-light, #9bbc0f);
+    border: 2px solid var(--lcd-darkest, #0f380f);
+    color: var(--lcd-darkest, #0f380f);
+    box-shadow: 
+      2px 2px 0 var(--lcd-darkest, #0f380f),
+      inset 1px 1px 0 rgba(255, 255, 255, 0.3);
+    font-family: 'Press Start 2P', 'Silkscreen', monospace;
+  }
+
+  .gb-tile:hover:not(:disabled) {
+    background: var(--lcd-dark, #306230);
+    color: var(--lcd-bg-light, #9bbc0f);
+    border-color: var(--lcd-darkest, #0f380f);
+  }
+
+  .gb-tile:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 var(--lcd-darkest, #0f380f);
+  }
+
+  /* Slotted Socket on LCD */
+  .gb-slot-well {
+    background: rgba(15, 56, 15, 0.15);
+    border: 2px dashed var(--lcd-dark, #306230);
+  }
+
+  /* Speaker Grille Slats */
+  .gb-speaker-slat {
+    background: #2b2b2e;
+    box-shadow: 
+      inset 0 1px 2px rgba(0, 0, 0, 0.9),
+      0 1px 0 rgba(255, 255, 255, 0.4);
+    border-radius: 4px;
+  }
+
+  /* Battery LED Glow */
+  .battery-led {
+    background: #ff2a2a;
+    box-shadow: 
+      0 0 6px #ff2a2a,
+      0 0 12px rgba(255, 42, 42, 0.8),
+      inset 0 1px 1px #ff9999;
   }
 }
 
-/* Shake animation for invalid sequence */
-@keyframes invalidShake {
+/* 8-bit Shake */
+@keyframes gbShake {
   0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-8px) scale(0.98); }
-  40%, 80% { transform: translateX(8px) scale(0.98); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
 }
 
-.animate-invalid-shake {
-  animation: invalidShake 0.35s cubic-bezier(.36,.07,.19,.97) both;
+.animate-gb-shake {
+  animation: gbShake 0.25s steps(4) both;
 }
 
-/* Pop in animation for word toast */
-@keyframes popScore {
-  0% { transform: scale(0.7) translateY(8px); opacity: 0; }
-  60% { transform: scale(1.1) translateY(-3px); opacity: 1; }
-  100% { transform: scale(1) translateY(0); opacity: 1; }
+/* 8-bit Pop */
+@keyframes gbPop {
+  0% { transform: scale(0.85); opacity: 0; }
+  50% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
-.animate-pop-score {
-  animation: popScore 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+.animate-gb-pop {
+  animation: gbPop 0.2s steps(4) forwards;
 }
 
-/* Cyber Terminal Scrollbar */
-.custom-matrix-scroll::-webkit-scrollbar {
-  width: 5px;
+/* Game Boy Scrollbar */
+.gb-scroll::-webkit-scrollbar {
+  width: 6px;
 }
-.custom-matrix-scroll::-webkit-scrollbar-track {
-  background: rgba(0, 30, 10, 0.4);
-  border-radius: 4px;
+.gb-scroll::-webkit-scrollbar-track {
+  background: var(--lcd-bg, #8bac0f);
+  border-left: 1px solid var(--lcd-darkest, #0f380f);
 }
-.custom-matrix-scroll::-webkit-scrollbar-thumb {
-  background: #00ff66;
-  box-shadow: 0 0 6px #00ff66;
-  border-radius: 4px;
+.gb-scroll::-webkit-scrollbar-thumb {
+  background: var(--lcd-darkest, #0f380f);
 }
-.custom-matrix-scroll::-webkit-scrollbar-thumb:hover {
-  background: #55ff99;
-}
+
 

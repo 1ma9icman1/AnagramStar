@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Share2, RotateCcw, BookOpen, Check, Copy, Bot, Trophy, ArrowRight, HelpCircle, Terminal, Cpu, Users, Home } from 'lucide-react';
 import { WoodTile } from './WoodTile';
-import { ScoreBanner } from './ScoreBanner';
 import { SubmittedWord, PlayerProfile, Opponent } from '../types/game';
 import { generateDiscordShareText, encodeMatchShareUrl } from '../utils/discord';
 
@@ -30,8 +28,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   rootWord,
   opponent,
   isPassPlay = false,
-  p1Name = 'Operator 1',
-  p2Name = 'Operator 2',
+  p1Name = 'P1',
+  p2Name = 'P2',
   onPlayAgain,
   onRematchPassPlay,
   onExitToLobby,
@@ -43,15 +41,14 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   const [copiedLink, setCopiedLink] = useState(false);
   const [opponentRevealed, setOpponentRevealed] = useState(opponent?.isReady || isPassPlay || false);
 
-  // Trigger cyber neon matrix confetti if high score or won
   useEffect(() => {
     if (playerScore >= 1000 || (isPassPlay && opponent && Math.max(playerScore, opponent.score) >= 500)) {
       try {
         confetti({
-          particleCount: 65,
-          spread: 70,
+          particleCount: 50,
+          spread: 60,
           origin: { y: 0.6 },
-          colors: ['#00ff66', '#00ffcc', '#55ff99', '#ffffff', '#10b981'],
+          colors: ['#0f380f', '#306230', '#8bac0f', '#9bbc0f'],
         });
       } catch {}
     }
@@ -74,7 +71,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
     try {
       await navigator.clipboard.writeText(text);
       setCopiedDiscord(true);
-      setTimeout(() => setCopiedDiscord(false), 2500);
+      setTimeout(() => setCopiedDiscord(false), 2000);
     } catch {}
   };
 
@@ -83,7 +80,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
     try {
       await navigator.clipboard.writeText(link);
       setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2500);
+      setTimeout(() => setCopiedLink(false), 2000);
     } catch {}
   };
 
@@ -94,228 +91,142 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   return (
     <div
       id="results-view-container"
-      className="relative w-full max-w-lg mx-auto min-h-[92vh] sm:min-h-[85vh] flex flex-col justify-between p-3 sm:p-5 bg-matrix-pattern rounded-2xl shadow-[0_0_50px_rgba(0,255,102,0.15)] border border-[#00ff66]/50 overflow-hidden text-emerald-100"
+      className="relative w-full h-full flex flex-col justify-between p-2 sm:p-3 select-none text-[var(--lcd-darkest,#0f380f)] font-['Press_Start_2P',monospace]"
     >
-      {/* Top action row */}
-      <div className="flex items-center justify-between px-2 pt-1 pb-2 border-b border-[#00ff66]/20">
-        <div className="flex items-center gap-2">
-          {onExitToLobby && (
-            <button
-              onClick={onExitToLobby}
-              className="flex items-center gap-1.5 text-xs font-mono font-bold bg-black hover:bg-emerald-950 text-emerald-400 px-3 py-1.5 rounded-lg border border-[#00ff66]/40 transition cursor-pointer"
-            >
-              <Home className="w-3.5 h-3.5" />
-              <span>[ LOBBY ]</span>
-            </button>
-          )}
+      {/* Top Title & Navigation */}
+      <div className="flex items-center justify-between pb-1.5 border-b-2 border-[var(--lcd-darkest,#0f380f)] text-[8px]">
+        <button
+          type="button"
+          onClick={onExitToLobby}
+          className="px-1.5 py-0.5 border border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-bg-light,#9bbc0f)] hover:bg-[var(--lcd-dark,#306230)] hover:text-[var(--lcd-bg-light,#9bbc0f)] cursor-pointer"
+        >
+          ◄ LOBBY
+        </button>
 
-          <button
-            onClick={isPassPlay && onRematchPassPlay ? onRematchPassPlay : onPlayAgain}
-            className="flex items-center gap-1.5 text-xs font-mono font-bold bg-[#002a11] hover:bg-[#003816] text-[#00ff66] px-3.5 py-1.5 rounded-lg border border-[#00ff66]/60 shadow-[0_0_10px_rgba(0,255,102,0.2)] transition cursor-pointer"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>{isPassPlay ? '[ 2P REMATCH ]' : '[ REBOOT RUN ]'}</span>
-          </button>
-        </div>
+        <span className="font-bold">GAME OVER</span>
 
-        {/* Dictionary & Help */}
-        <div className="flex items-center gap-1.5 font-mono">
-          <button
-            id="view-dictionary-button"
-            onClick={onOpenDictionary}
-            className="px-2.5 py-1.5 rounded-lg bg-black hover:bg-emerald-950/80 text-[#00ff66] flex items-center gap-1.5 border border-[#00ff66]/40 transition cursor-pointer shadow-[0_0_8px_rgba(0,255,102,0.2)] text-xs"
-            title="Inspect full dictionary payload permutations"
-          >
-            <BookOpen className="w-3.5 h-3.5" />
-            <span>WORD LIST</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onOpenDictionary}
+          className="px-1.5 py-0.5 border border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-bg-light,#9bbc0f)] hover:bg-[var(--lcd-dark,#306230)] hover:text-[var(--lcd-bg-light,#9bbc0f)] cursor-pointer text-[7px]"
+        >
+          DICTIONARY
+        </button>
       </div>
 
-      {/* Outcome Banner if opponent or 2P is active */}
-      {opponentRevealed && opponent && (
-        <div className="my-2 text-center animate-pop-score">
-          {isPassPlay ? (
-            isWin ? (
-              <span className="inline-flex items-center gap-1.5 bg-[#003314] text-[#00ff66] border border-[#00ff66] px-4 py-1 rounded font-mono text-xs font-black tracking-wider uppercase shadow-[0_0_15px_#00ff66]">
-                <Trophy className="w-3.5 h-3.5 text-[#00ffcc]" /> [ 🏆 {p2Name.toUpperCase()} PREVAILED IN DUEL! ]
-              </span>
+      {/* Main Results Body */}
+      <div className="flex-1 flex flex-col items-center justify-between my-2 overflow-y-auto gb-scroll">
+        {/* Outcome Header if 2P or Bot Match */}
+        {opponentRevealed && opponent ? (
+          <div className="w-full text-center py-1 bg-[var(--lcd-darkest,#0f380f)] text-[var(--lcd-bg-light,#9bbc0f)] text-[8px] sm:text-[9px] mb-2 animate-gb-pop">
+            {isPassPlay ? (
+              isWin ? `★ ${p2Name.toUpperCase()} WON DUEL! ★` : isLoss ? `★ ${p1Name.toUpperCase()} WON DUEL! ★` : '★ TIE MATCH! ★'
+            ) : isWin ? (
+              '★ VICTORY! YOU BEAT THE AI ★'
             ) : isLoss ? (
-              <span className="inline-flex items-center gap-1.5 bg-[#003314] text-[#00ff66] border border-[#00ff66] px-4 py-1 rounded font-mono text-xs font-black tracking-wider uppercase shadow-[0_0_15px_#00ff66]">
-                <Trophy className="w-3.5 h-3.5 text-[#00ffcc]" /> [ 🏆 {p1Name.toUpperCase()} PREVAILED IN DUEL! ]
-              </span>
+              'DEFEAT - AI TOOK THE ROUND'
             ) : (
-              <span className="inline-flex items-center gap-1.5 bg-[#052e16] text-[#00ffcc] border border-[#00ffcc] px-4 py-1 rounded font-mono text-xs font-black tracking-wider uppercase shadow-[0_0_15px_#00ffcc]">
-                [ 🤝 SYSTEM PARITY: PERFECT TIE MATCH ]
-              </span>
-            )
-          ) : (
-            isWin ? (
-              <span className="inline-flex items-center gap-1.5 bg-[#003314] text-[#00ff66] border border-[#00ff66] px-4 py-1 rounded font-mono text-xs font-black tracking-wider uppercase shadow-[0_0_15px_#00ff66]">
-                <Trophy className="w-3.5 h-3.5 text-[#00ffcc]" /> [ OVERRIDE SUCCESS: DUEL WON ]
-              </span>
-            ) : isLoss ? (
-              <span className="inline-flex items-center gap-1.5 bg-[#3b0808] text-rose-300 border border-rose-500 px-4 py-1 rounded font-mono text-xs font-black tracking-wider uppercase shadow-[0_0_15px_#f43f5e]">
-                [ ACCESS DENIED: {opponent.name.toUpperCase()} PREVAILED ]
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 bg-[#052e16] text-[#00ffcc] border border-[#00ffcc] px-4 py-1 rounded font-mono text-xs font-black tracking-wider uppercase shadow-[0_0_15px_#00ffcc]">
-                [ SYSTEM PARITY: TIED MATCH ]
-              </span>
-            )
-          )}
-        </div>
-      )}
-
-      {/* 2-Column Matrix Decrypted Results Layout */}
-      <div className="grid grid-cols-2 gap-2 sm:gap-4 flex-1 my-2">
-        {/* Left Column: Player 2 (or You) */}
-        <div className="flex flex-col">
-          {/* Top Player HUD Banner */}
-          <div className="mb-2">
-            <ScoreBanner
-              wordsCount={playerWords.length}
-              score={playerScore}
-              avatarEmoji={playerProfile.avatarEmoji}
-              avatarBg={playerProfile.avatarColor}
-              playerName={isPassPlay ? p2Name : 'You'}
-              compact
-            />
-          </div>
-
-          {/* Word List Stack */}
-          <div
-            id="player-words-list"
-            className="flex-1 bg-black/80 rounded-xl p-2 sm:p-2.5 border border-[#00ff66]/40 overflow-y-auto max-h-[46vh] custom-matrix-scroll space-y-1.5"
-          >
-            {playerWords.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-center text-xs font-mono text-emerald-600 font-medium py-8">
-                [ 0 CIPHERS EXTRACTED ]
-              </div>
-            ) : (
-              playerWords.map((item, idx) => (
-                <div
-                  key={`pw-${item.word}-${idx}`}
-                  className="flex items-center justify-between gap-1 py-0.5 border-b border-[#00ff66]/10"
-                >
-                  {/* Cyber mini tiles */}
-                  <div className="flex items-center gap-[2px]">
-                    {item.word.split('').map((ch, i) => (
-                      <WoodTile
-                        key={`ch-${i}`}
-                        letter={ch}
-                        size="mini"
-                      />
-                    ))}
-                  </div>
-                  {/* Points */}
-                  <span className="text-xs sm:text-sm font-black text-[#00ff66] font-mono">
-                    +{item.score}b
-                  </span>
-                </div>
-              ))
+              'DRAW - PERFECT TIE'
             )}
           </div>
-        </div>
-
-        {/* Right Column: Player 1 / Opponent */}
-        <div className="flex flex-col">
-          {/* Top Opponent Banner */}
-          <div className="mb-2">
-            <ScoreBanner
-              wordsCount={opponentRevealed && opponent ? opponent.words.length : 0}
-              score={opponentRevealed && opponent ? opponent.score : -1}
-              avatarEmoji={opponent?.avatarEmoji || (opponentRevealed ? '🤖' : '?')}
-              avatarBg={opponent?.avatarUrl || '#052e16'}
-              playerName={isPassPlay ? p1Name : (opponent?.name || 'Opponent')}
-              isOpponent={!isPassPlay && !opponentRevealed}
-              compact
-            />
-          </div>
-
-          {/* Opponent Word Stack */}
-          <div
-            id="opponent-words-list"
-            className="flex-1 bg-black/80 rounded-xl p-2 sm:p-2.5 border border-[#00ff66]/40 overflow-y-auto max-h-[46vh] custom-matrix-scroll space-y-1.5 flex flex-col justify-start"
-          >
-            {!opponentRevealed ? (
-              <div className="h-full flex flex-col items-center justify-center text-center text-xs font-mono text-emerald-600 p-4 gap-2">
-                <span className="w-10 h-10 rounded-lg bg-black flex items-center justify-center text-[#00ff66] font-black text-lg border border-[#00ff66]/40 shadow-[0_0_10px_rgba(0,255,102,0.2)]">
-                  ?
-                </span>
-                <span>DECRYPTION STREAM LOCKED...</span>
-              </div>
-            ) : opponent && opponent.words.length > 0 ? (
-              opponent.words.map((item, idx) => (
-                <div
-                  key={`ow-${item.word}-${idx}`}
-                  className="flex items-center justify-between gap-1 py-0.5 border-b border-[#00ff66]/10"
-                >
-                  <div className="flex items-center gap-[2px]">
-                    {item.word.split('').map((ch, i) => (
-                      <WoodTile
-                        key={`och-${i}`}
-                        letter={ch}
-                        size="mini"
-                      />
-                    ))}
-                  </div>
-                  <span className="text-xs sm:text-sm font-black text-[#00ff66] font-mono">
-                    +{item.score}b
-                  </span>
-                </div>
-              ))
-            ) : (
-              <div className="h-full flex items-center justify-center text-center text-xs font-mono text-emerald-600 py-8">
-                0 WORDS EXTRACTED
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Action Area */}
-      <div className="mt-3 flex flex-col gap-2 select-none">
-        {!opponentRevealed && opponent ? (
-          <button
-            id="reveal-opponent-button"
-            type="button"
-            onClick={handleReveal}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 via-[#00ff66] to-teal-500 hover:from-emerald-400 hover:to-teal-400 active:scale-[0.98] text-black font-['Orbitron',monospace] font-black text-sm uppercase tracking-wider shadow-[0_0_20px_#00ff66] border border-white transition cursor-pointer flex items-center justify-center gap-2"
-          >
-            <span>DECRYPT OPPONENT LOGS ({opponent.name.toUpperCase()})</span>
-            <ArrowRight className="w-4 h-4 text-black" />
-          </button>
         ) : (
-          <div className="w-full py-2 rounded-xl bg-black/80 border border-[#00ff66]/40 text-[#00ff66] font-mono font-bold text-xs uppercase tracking-wider text-center">
-            {isPassPlay ? `DUEL COMPLETE • SEED: ${rootWord}` : (opponent ? `RUN FINISHED • SEED: ${rootWord}` : 'RUN COMPLETE')}
-          </div>
+          <div className="text-[7px] text-[var(--lcd-dark,#306230)] mb-1">ROUND SUMMARY</div>
         )}
 
-        {/* Discord Share & Copy Link Grid */}
-        <div className="grid grid-cols-2 gap-2 font-mono">
+        {/* Score Boxes (1 or 2 players) */}
+        <div className="w-full grid grid-cols-2 gap-1.5 mb-2">
+          {/* Player Box */}
+          <div className="border-2 border-[var(--lcd-darkest,#0f380f)] p-1.5 bg-[var(--lcd-bg-light,#9bbc0f)] flex flex-col items-center text-center">
+            <div className="text-[7px] truncate max-w-full font-bold">
+              {isPassPlay ? p2Name : playerProfile.name}
+            </div>
+            <div className="text-xs sm:text-sm font-black my-0.5">{playerScore}</div>
+            <div className="text-[6px] text-[var(--lcd-dark,#306230)]">{playerWords.length} WORDS</div>
+          </div>
+
+          {/* Opponent / Target Box */}
+          {opponent ? (
+            <div className="border-2 border-[var(--lcd-darkest,#0f380f)] p-1.5 bg-[var(--lcd-bg-light,#9bbc0f)] flex flex-col items-center text-center">
+              <div className="text-[7px] truncate max-w-full font-bold">
+                {isPassPlay ? p1Name : opponent.name}
+              </div>
+              {opponentRevealed ? (
+                <>
+                  <div className="text-xs sm:text-sm font-black my-0.5">{opponent.score}</div>
+                  <div className="text-[6px] text-[var(--lcd-dark,#306230)]">{opponent.words?.length || 0} WORDS</div>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleReveal}
+                  className="mt-1 px-1.5 py-0.5 bg-[var(--lcd-darkest,#0f380f)] text-[var(--lcd-bg-light,#9bbc0f)] text-[6px] cursor-pointer"
+                >
+                  REVEAL
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="border-2 border-[var(--lcd-darkest,#0f380f)] p-1.5 bg-[var(--lcd-bg-light,#9bbc0f)] flex flex-col items-center text-center">
+              <div className="text-[7px] font-bold">ROOT WORD</div>
+              <div className="text-xs font-black my-0.5">{rootWord}</div>
+              <div className="text-[6px] text-[var(--lcd-dark,#306230)]">{rootWord.length} LETTERS</div>
+            </div>
+          )}
+        </div>
+
+        {/* Found Words Grid */}
+        <div className="w-full flex-1 border border-[var(--lcd-darkest,#0f380f)] p-1.5 bg-[var(--lcd-bg-light,#9bbc0f)] mb-2 flex flex-col">
+          <div className="flex justify-between items-center text-[7px] mb-1 pb-0.5 border-b border-[var(--lcd-dark,#306230)]/40">
+            <span>WORDS FOUND:</span>
+            <span>{playerWords.length}</span>
+          </div>
+
+          <div className="flex-1 flex flex-wrap gap-1 overflow-y-auto max-h-[85px] gb-scroll content-start">
+            {playerWords.length === 0 ? (
+              <span className="text-[7px] text-[var(--lcd-dark,#306230)]">NO WORDS ENTERED</span>
+            ) : (
+              playerWords.map((sw, i) => (
+                <span
+                  key={`${sw.word}-${i}`}
+                  className="px-1 py-0.5 border border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-bg,#8bac0f)] text-[7px]"
+                >
+                  {sw.word} <span className="opacity-80">+{sw.score}</span>
+                </span>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Social / Rematch Action Buttons */}
+        <div className="w-full grid grid-cols-2 gap-1 text-[7px]">
           <button
-            id="share-discord-button"
             type="button"
             onClick={onOpenDiscordInvite || handleCopyDiscord}
-            className="py-2.5 px-3 rounded-xl bg-[#5865F2] hover:bg-[#4752C4] active:scale-[0.98] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(88,101,242,0.4)] transition cursor-pointer border border-white/20"
+            className="py-1.5 border border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-bg-light,#9bbc0f)] hover:bg-[var(--lcd-dark,#306230)] hover:text-[var(--lcd-bg-light,#9bbc0f)] cursor-pointer text-center"
           >
-            {copiedDiscord ? <Check className="w-4 h-4 text-emerald-300" /> : <Share2 className="w-4 h-4" />}
-            <span>{copiedDiscord ? 'PAYLOAD COPIED!' : 'INVITE / EXPORT'}</span>
+            {copiedDiscord ? 'COPIED!' : 'DISCORD EXPORT'}
           </button>
 
           <button
-            id="copy-match-link-button"
             type="button"
             onClick={handleCopyLink}
-            className="py-2.5 px-3 rounded-xl bg-black hover:bg-[#002a11] active:scale-[0.98] text-[#00ff66] font-bold text-xs flex items-center justify-center gap-1.5 border border-[#00ff66]/60 shadow-[0_0_12px_rgba(0,255,102,0.2)] transition cursor-pointer"
+            className="py-1.5 border border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-bg-light,#9bbc0f)] hover:bg-[var(--lcd-dark,#306230)] hover:text-[var(--lcd-bg-light,#9bbc0f)] cursor-pointer text-center"
           >
-            {copiedLink ? <Check className="w-4 h-4 text-[#00ffcc]" /> : <Copy className="w-4 h-4" />}
-            <span>{copiedLink ? 'SEED COPIED!' : 'SHARE SEED'}</span>
+            {copiedLink ? 'LINK COPIED!' : 'COPY LINK'}
           </button>
         </div>
+      </div>
+
+      {/* Bottom Rematch Bar */}
+      <div className="pt-1.5 border-t-2 border-[var(--lcd-darkest,#0f380f)] flex gap-1">
+        <button
+          type="button"
+          onClick={isPassPlay && onRematchPassPlay ? onRematchPassPlay : onPlayAgain}
+          className="w-full py-2 border-2 border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-darkest,#0f380f)] text-[var(--lcd-bg-light,#9bbc0f)] font-bold text-[8px] text-center shadow-[2px_2px_0_var(--lcd-darkest,#0f380f)] hover:scale-[1.01] active:scale-95 cursor-pointer"
+        >
+          ► {isPassPlay ? 'REMATCH DUEL' : 'PLAY AGAIN'}
+        </button>
       </div>
     </div>
   );
 };
-

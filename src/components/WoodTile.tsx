@@ -6,6 +6,7 @@ interface WoodTileProps {
   disabled?: boolean;
   size?: 'normal' | 'small' | 'mini' | 'large';
   isSlotted?: boolean;
+  isSelected?: boolean;
   className?: string;
   id?: string;
 }
@@ -16,36 +17,37 @@ export const WoodTile: React.FC<WoodTileProps> = ({
   disabled = false,
   size = 'normal',
   isSlotted = false,
+  isSelected = false,
   className = '',
   id,
 }) => {
   const sizeClasses = {
-    mini: 'w-6 h-6 sm:w-7 sm:h-7 text-xs sm:text-sm rounded-[4px]',
-    small: 'w-9 h-9 sm:w-10 sm:h-10 text-base sm:text-lg rounded-[6px]',
-    normal: 'w-12 h-14 sm:w-14 sm:h-16 text-2xl sm:text-3xl rounded-[8px]',
-    large: 'w-14 h-16 sm:w-16 sm:h-18 text-3xl sm:text-4xl rounded-[10px]',
+    mini: 'w-6 h-6 sm:w-7 sm:h-7 text-[10px] sm:text-xs rounded-sm',
+    small: 'w-8 h-8 sm:w-9 sm:h-9 text-xs sm:text-sm rounded-sm',
+    normal: 'w-10 h-11 sm:w-12 sm:h-13 text-base sm:text-lg rounded-sm',
+    large: 'w-12 h-13 sm:w-14 sm:h-15 text-lg sm:text-xl rounded-md',
   }[size];
-
-  const tileStyleClass = size === 'mini' ? 'matrix-tile-mini' : 'matrix-tile';
 
   return (
     <button
-      id={id || `matrix-tile-${letter}-${Math.random().toString(36).substring(2, 6)}`}
+      id={id || `gb-tile-${letter}-${Math.random().toString(36).substring(2, 6)}`}
       type="button"
       onClick={onClick}
       disabled={disabled}
       className={`
-        ${tileStyleClass}
+        gb-tile
         ${sizeClasses}
-        flex items-center justify-center font-black tracking-wider
-        transition-all duration-150 transform select-none cursor-pointer
-        ${disabled ? 'opacity-0 scale-75 pointer-events-none' : 'hover:-translate-y-1 active:scale-95'}
-        ${isSlotted ? 'ring-2 ring-[#00ffcc] ring-offset-1 ring-offset-black shadow-[0_0_15px_#00ffcc]' : ''}
+        flex items-center justify-center font-bold tracking-tight
+        transition-all duration-75 select-none cursor-pointer
+        ${disabled ? 'opacity-0 scale-75 pointer-events-none' : 'hover:-translate-y-0.5 active:translate-y-0.5'}
+        ${isSlotted ? 'ring-2 ring-[var(--lcd-darkest,#0f380f)] scale-105' : ''}
+        ${isSelected ? 'bg-[var(--lcd-dark,#306230)] text-[var(--lcd-bg-light,#9bbc0f)]' : ''}
         ${className}
       `}
     >
-      <span className="leading-none mt-[-1px] font-['Orbitron',monospace] font-black">{letter.toUpperCase()}</span>
+      <span className="leading-none font-['Press_Start_2P',monospace]">{letter.toUpperCase()}</span>
     </button>
   );
 };
+
 

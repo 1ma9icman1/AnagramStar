@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { GameBoyConsole, LcdPalette } from './components/GameBoyConsole';
 import { GameBoard } from './components/GameBoard';
 import { ResultsView } from './components/ResultsView';
 import { LobbyView } from './components/LobbyView';
@@ -21,8 +22,12 @@ import {
   decodeMatchChallenge,
 } from './utils/discord';
 import { initDiscordSdk } from './utils/discordSdk';
+import { sound } from './utils/sound';
 
 export default function App() {
+  // LCD Palette selection ('dmg', 'pocket', 'light', 'gbc')
+  const [currentPalette, setCurrentPalette] = useState<LcdPalette>('dmg');
+
   // Saved profile & settings
   const [profile, setProfile] = useState<PlayerProfile>(loadSavedProfile);
   const [settings, setSettings] = useState<GameSettings>({
@@ -65,8 +70,8 @@ export default function App() {
   }>({
     isPassPlay: false,
     turn: 1,
-    p1Name: 'Operator 1',
-    p2Name: 'Operator 2',
+    p1Name: 'PLAYER 1',
+    p2Name: 'PLAYER 2',
     p1Words: [],
     p1Score: 0,
   });
@@ -101,7 +106,7 @@ export default function App() {
       });
 
       setIncomingChallenge({
-        challengerName: challenge.playerName || 'Discord Challenger',
+        challengerName: challenge.playerName || 'Discord Rival',
         score: challenge.score,
         wordLength: root.length,
       });
@@ -109,10 +114,10 @@ export default function App() {
       setOpponent({
         id: 'challenger',
         name: challenge.playerName || 'Challenger',
-        avatarUrl: '#5865F2',
+        avatarUrl: '#0f380f',
         avatarEmoji: '⚡',
         score: challenge.score,
-        words: [], // hidden until round finishes
+        words: [],
         isReady: false,
         statusText: `Challenged you to beat ${challenge.score.toLocaleString()} pts!`,
       });
@@ -136,64 +141,70 @@ export default function App() {
       isPassPlay: false,
       turn: 1,
       p1Name: profile.name,
-      p2Name: 'Operator 2',
+      p2Name: 'PLAYER 2',
       p1Words: [],
       p1Score: 0,
     });
     setGameState('playing');
   }, [settings.wordLength, profile.name]);
 
-  // Start match vs Discord Bot
-  const handleStartBotMatch = useCallback((bot: BotPreset) => {
-    const puzzle = getRandomPuzzle(settings.wordLength);
-    setCurrentPuzzle(puzzle);
-    setPlayerWords([]);
-    setPlayerScore(0);
-    setPassPlayState({
-      isPassPlay: false,
-      turn: 1,
-      p1Name: profile.name,
-      p2Name: bot.name,
-      p1Words: [],
-      p1Score: 0,
-    });
+  // Start match vs AI Bot
+  const handleStartBotMatch = useCallback(
+    (bot: BotPreset) => {
+      const puzzle = getRandomPuzzle(settings.wordLength);
+      setCurrentPuzzle(puzzle);
+      setPlayerWords([]);
+      setPlayerScore(0);
+      setPassPlayState({
+        isPassPlay: false,
+        turn: 1,
+        p1Name: profile.name,
+        p2Name: bot.name,
+        p1Words: [],
+        p1Score: 0,
+      });
 
-    const botWords = getBotFoundWords(bot, puzzle.allValidWords);
-    const botScore = botWords.reduce((s, w) => s + w.score, 0);
+      const botWords = getBotFoundWords(bot, puzzle.allValidWords);
+      const botScore = botWords.reduce((s, w) => s + w.score, 0);
 
-    setOpponent({
-      id: bot.id,
-      name: bot.name,
-      avatarUrl: bot.avatarBg,
-      avatarEmoji: bot.avatar,
-      score: botScore,
-      words: botWords,
-      isReady: false,
-    });
+      setOpponent({
+        id: bot.id,
+        name: bot.name,
+        avatarUrl: bot.avatarBg,
+        avatarEmoji: bot.avatar,
+        score: botScore,
+        words: botWords,
+        isReady: false,
+      });
 
-    setGameState('playing');
-  }, [settings.wordLength, profile.name]);
+      setGameState('playing');
+    },
+    [settings.wordLength, profile.name]
+  );
 
   // Start 2-Player Pass & Play
-  const handleStartPassPlay = useCallback((p1?: string, p2?: string) => {
-    const puzzle = getRandomPuzzle(settings.wordLength);
-    const player1Name = (p1 && p1.trim()) || profile.name || 'Operator 1';
-    const player2Name = (p2 && p2.trim()) || 'Operator 2';
+  const handleStartPassPlay = useCallback(
+    (p1?: string, p2?: string) => {
+      const puzzle = getRandomPuzzle(settings.wordLength);
+      const player1Name = (p1 && p1.trim()) || profile.name || 'PLAYER 1';
+      const player2Name = (p2 && p2.trim()) || 'PLAYER 2';
 
-    setCurrentPuzzle(puzzle);
-    setPlayerWords([]);
-    setPlayerScore(0);
-    setOpponent(null);
-    setPassPlayState({
-      isPassPlay: true,
-      turn: 1,
-      p1Name: player1Name,
-      p2Name: player2Name,
-      p1Words: [],
-      p1Score: 0,
-    });
-    setGameState('playing');
-  }, [settings.wordLength, profile.name]);
+      setCurrentPuzzle(puzzle);
+      setPlayerWords([]);
+      setPlayerScore(0);
+      setOpponent(null);
+      setPassPlayState({
+        isPassPlay: true,
+        turn: 1,
+        p1Name: player1Name,
+        p2Name: player2Name,
+        p1Words: [],
+        p1Score: 0,
+      });
+      setGameState('playing');
+    },
+    [settings.wordLength, profile.name]
+  );
 
   // Accept incoming challenge
   const handleAcceptIncomingChallenge = useCallback(() => {
@@ -212,117 +223,159 @@ export default function App() {
   }, [currentPuzzle, profile.name, opponent]);
 
   // Launch custom puzzle from Discord invite generator
-  const handleStartWithCustomPuzzle = useCallback((puzzle: { root: string; scrambled: string; allValidWords: string[]; maxScore: number }) => {
-    setCurrentPuzzle(puzzle);
-    setPlayerWords([]);
-    setPlayerScore(0);
-    setOpponent(null);
-    setPassPlayState({
-      isPassPlay: false,
-      turn: 1,
-      p1Name: profile.name,
-      p2Name: 'Challenger',
-      p1Words: [],
-      p1Score: 0,
-    });
-    setGameState('playing');
-  }, [profile.name]);
-
-  // Load a friend's challenge code
-  const handleLoadChallenge = useCallback((input: string) => {
-    const challenge = decodeMatchChallenge(input);
-    if (challenge && challenge.root) {
-      const root = challenge.root.toUpperCase();
-      const allValid = findAllValidAnagrams(root);
-      const maxSc = allValid.reduce((sum, w) => sum + calculateWordScore(w), 0);
-
-      const puz = {
-        root,
-        scrambled: root,
-        allValidWords: allValid,
-        maxScore: maxSc,
-      };
-
-      setCurrentPuzzle(puz);
-      setOpponent({
-        id: 'friend_challenge',
-        name: challenge.playerName || 'Discord Friend',
-        avatarUrl: '#5865F2',
-        avatarEmoji: '🎮',
-        score: challenge.score,
-        words: [],
-        isReady: false,
-        statusText: `Challenged you to beat ${challenge.score.toLocaleString()} pts!`,
-      });
-
+  const handleStartWithCustomPuzzle = useCallback(
+    (puzzle: { root: string; scrambled: string; allValidWords: string[]; maxScore: number }) => {
+      setCurrentPuzzle(puzzle);
       setPlayerWords([]);
       setPlayerScore(0);
+      setOpponent(null);
       setPassPlayState({
         isPassPlay: false,
         turn: 1,
         p1Name: profile.name,
-        p2Name: challenge.playerName || 'Friend',
+        p2Name: 'Challenger',
         p1Words: [],
         p1Score: 0,
       });
       setGameState('playing');
-    } else {
-      alert('Invalid challenge payload or link');
-    }
-  }, [profile.name]);
+    },
+    [profile.name]
+  );
+
+  // Load a friend's challenge code
+  const handleLoadChallenge = useCallback(
+    (input: string) => {
+      const challenge = decodeMatchChallenge(input);
+      if (challenge && challenge.root) {
+        const root = challenge.root.toUpperCase();
+        const allValid = findAllValidAnagrams(root);
+        const maxSc = allValid.reduce((sum, w) => sum + calculateWordScore(w), 0);
+
+        const puz = {
+          root,
+          scrambled: root,
+          allValidWords: allValid,
+          maxScore: maxSc,
+        };
+
+        setCurrentPuzzle(puz);
+        setOpponent({
+          id: 'friend_challenge',
+          name: challenge.playerName || 'Discord Friend',
+          avatarUrl: '#0f380f',
+          avatarEmoji: '🎮',
+          score: challenge.score,
+          words: [],
+          isReady: false,
+          statusText: `Challenged you to beat ${challenge.score.toLocaleString()} pts!`,
+        });
+
+        setPlayerWords([]);
+        setPlayerScore(0);
+        setPassPlayState({
+          isPassPlay: false,
+          turn: 1,
+          p1Name: profile.name,
+          p2Name: challenge.playerName || 'Friend',
+          p1Words: [],
+          p1Score: 0,
+        });
+        setGameState('playing');
+      } else {
+        sound.playInvalidWord();
+      }
+    },
+    [profile.name]
+  );
 
   // Round completed
-  const handleRoundComplete = useCallback((words: SubmittedWord[], score: number) => {
-    // Check if this was Pass & Play Turn 1
-    if (passPlayState.isPassPlay && passPlayState.turn === 1) {
-      setPassPlayState(prev => ({
-        ...prev,
-        turn: 2,
-        p1Words: words,
-        p1Score: score,
-      }));
-      setGameState('round_over'); // Will show transition screen for Player 2
-      return;
-    }
+  const handleRoundComplete = useCallback(
+    (words: SubmittedWord[], score: number) => {
+      if (passPlayState.isPassPlay && passPlayState.turn === 1) {
+        setPassPlayState((prev) => ({
+          ...prev,
+          turn: 2,
+          p1Words: words,
+          p1Score: score,
+        }));
+        setGameState('round_over');
+        return;
+      }
 
-    if (passPlayState.isPassPlay && passPlayState.turn === 2) {
-      // Player 2 finished; set Player 1 as opponent
+      if (passPlayState.isPassPlay && passPlayState.turn === 2) {
+        setPlayerWords(words);
+        setPlayerScore(score);
+        setOpponent({
+          id: 'player1',
+          name: passPlayState.p1Name || 'PLAYER 1',
+          avatarUrl: '#0f380f',
+          avatarEmoji: '🎮',
+          score: passPlayState.p1Score,
+          words: passPlayState.p1Words,
+          isReady: true,
+        });
+        setGameState('results');
+        return;
+      }
+
       setPlayerWords(words);
       setPlayerScore(score);
-      setOpponent({
-        id: 'player1',
-        name: passPlayState.p1Name || 'Operator 1',
-        avatarUrl: '#052e16',
-        avatarEmoji: '🕶️',
-        score: passPlayState.p1Score,
-        words: passPlayState.p1Words,
-        isReady: true,
+
+      setProfile((prev) => {
+        const updated = {
+          ...prev,
+          gamesPlayed: prev.gamesPlayed + 1,
+          highestScore: Math.max(prev.highestScore, score),
+          totalWordsFound: prev.totalWordsFound + words.length,
+        };
+        saveProfile(updated);
+        return updated;
       });
+
       setGameState('results');
-      return;
+    },
+    [passPlayState]
+  );
+
+  // Physical Game Boy Button Action handlers
+  const handleConsoleAPress = () => {
+    if (gameState === 'lobby') {
+      handleStartSolo();
+    } else if (gameState === 'round_over') {
+      setGameState('playing');
+    } else if (gameState === 'results') {
+      if (passPlayState.isPassPlay) {
+        handleStartPassPlay(passPlayState.p1Name, passPlayState.p2Name);
+      } else {
+        handleStartSolo();
+      }
     }
+  };
 
-    // Standard solo, bot, or friend finish
-    setPlayerWords(words);
-    setPlayerScore(score);
+  const handleConsoleBPress = () => {
+    if (gameState === 'playing' || gameState === 'results' || gameState === 'round_over') {
+      setGameState('lobby');
+    }
+  };
 
-    // Update player high score stats
-    setProfile(prev => {
-      const updated = {
-        ...prev,
-        gamesPlayed: prev.gamesPlayed + 1,
-        highestScore: Math.max(prev.highestScore, score),
-        totalWordsFound: prev.totalWordsFound + words.length,
-      };
-      saveProfile(updated);
-      return updated;
-    });
-
-    setGameState('results');
-  }, [passPlayState]);
+  const handleConsoleStartPress = () => {
+    if (gameState === 'lobby') {
+      handleStartSolo();
+    } else if (gameState === 'round_over') {
+      setGameState('playing');
+    } else if (gameState === 'results') {
+      handleStartSolo();
+    }
+  };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-2 sm:p-4 md:p-6 bg-[#020703] font-mono selection:bg-[#00ff66] selection:text-black">
+    <GameBoyConsole
+      currentPalette={currentPalette}
+      onPaletteChange={setCurrentPalette}
+      onAPress={handleConsoleAPress}
+      onBPress={handleConsoleBPress}
+      onStartPress={handleConsoleStartPress}
+    >
       {/* 1. Lobby View */}
       {gameState === 'lobby' && (
         <LobbyView
@@ -350,7 +403,7 @@ export default function App() {
               ? {
                   ...profile,
                   name: passPlayState.turn === 1 ? passPlayState.p1Name : passPlayState.p2Name,
-                  avatarEmoji: passPlayState.turn === 1 ? '🕶️' : '💻',
+                  avatarEmoji: passPlayState.turn === 1 ? '🎮' : '👾',
                 }
               : profile
           }
@@ -370,23 +423,31 @@ export default function App() {
 
       {/* 3. Pass & Play Intermission */}
       {gameState === 'round_over' && passPlayState.isPassPlay && passPlayState.turn === 2 && (
-        <div className="w-full max-w-md mx-auto min-h-[70vh] flex flex-col items-center justify-center p-6 bg-matrix-pattern rounded-2xl shadow-[0_0_40px_rgba(0,255,102,0.25)] border-2 border-[#00ff66]/60 text-center select-none text-emerald-100">
-          <div className="w-16 h-16 rounded-xl bg-black border-2 border-[#00ff66] shadow-[0_0_15px_#00ff66] flex items-center justify-center text-3xl mb-4 animate-bounce">
-            ⚡
+        <div className="w-full h-full flex flex-col justify-between p-3 select-none text-[var(--lcd-darkest,#0f380f)] font-['Press_Start_2P',monospace] text-center">
+          <div className="text-[8px] font-bold border-b-2 border-[var(--lcd-darkest,#0f380f)] pb-1">
+            PLAYER HANDOFF
           </div>
-          <h2 className="text-2xl font-['Orbitron',monospace] font-black text-[#00ff66]">TRANSFER TERMINAL</h2>
-          <div className="my-3 p-3 bg-black/80 rounded-xl border border-[#00ff66]/40 text-xs font-mono text-emerald-300">
-            <span className="text-[#00ffcc] font-black text-sm uppercase">{passPlayState.p1Name}</span> LOGGED{' '}
-            <span className="text-[#00ff66] font-black text-sm">+{passPlayState.p1Score.toLocaleString()} BYTES</span> ({passPlayState.p1Words.length} WORDS).
+
+          <div className="my-auto flex flex-col items-center gap-2">
+            <div className="w-10 h-10 border-2 border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-bg,#8bac0f)] flex items-center justify-center text-xl animate-bounce">
+              🎮
+            </div>
+            <div className="text-[8px] leading-relaxed">
+              <span className="font-bold">{passPlayState.p1Name}</span> SCORED:
+              <div className="text-sm font-black my-1">{passPlayState.p1Score} PTS</div>
+              ({passPlayState.p1Words.length} WORDS)
+            </div>
+            <div className="text-[7px] text-[var(--lcd-dark,#306230)] px-2">
+              PASS CONSOLE TO <span className="font-bold text-[var(--lcd-darkest,#0f380f)]">{passPlayState.p2Name}</span>!
+            </div>
           </div>
-          <p className="text-xs text-emerald-400 max-w-xs font-mono mb-4">
-            Pass the device to <span className="text-[#00ff66] font-black uppercase">{passPlayState.p2Name}</span>. Both operators get the exact same letters!
-          </p>
+
           <button
+            type="button"
             onClick={() => setGameState('playing')}
-            className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-600 via-[#00ff66] to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black font-['Orbitron',monospace] font-black text-sm uppercase tracking-wider shadow-[0_0_25px_#00ff66] border-2 border-white transition cursor-pointer"
+            className="w-full py-2.5 border-2 border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-darkest,#0f380f)] text-[var(--lcd-bg-light,#9bbc0f)] font-bold text-[8px] shadow-[2px_2px_0_var(--lcd-darkest,#0f380f)] cursor-pointer active:scale-95"
           >
-            START {passPlayState.p2Name.toUpperCase()}'S 60s RUN
+            ► START {passPlayState.p2Name}'S TURN
           </button>
         </div>
       )}
@@ -409,13 +470,13 @@ export default function App() {
           onOpenDictionary={() => setIsDictionaryModalOpen(true)}
           onRevealOpponent={() => {
             if (opponent) {
-              setOpponent(prev => (prev ? { ...prev, isReady: true } : null));
+              setOpponent((prev) => (prev ? { ...prev, isReady: true } : null));
             }
           }}
         />
       )}
 
-      {/* Discord Invite Modal */}
+      {/* Modals */}
       <DiscordInviteModal
         isOpen={isDiscordInviteModalOpen}
         onClose={() => setIsDiscordInviteModalOpen(false)}
@@ -425,7 +486,6 @@ export default function App() {
         onStartWithPuzzle={handleStartWithCustomPuzzle}
       />
 
-      {/* Profile Modal */}
       <ProfileModal
         profile={profile}
         isOpen={isProfileModalOpen}
@@ -433,7 +493,6 @@ export default function App() {
         onClose={() => setIsProfileModalOpen(false)}
       />
 
-      {/* Dictionary Modal */}
       {currentPuzzle && (
         <DictionaryModal
           rootWord={currentPuzzle.root}
@@ -443,7 +502,6 @@ export default function App() {
           onClose={() => setIsDictionaryModalOpen(false)}
         />
       )}
-    </div>
+    </GameBoyConsole>
   );
 }
-

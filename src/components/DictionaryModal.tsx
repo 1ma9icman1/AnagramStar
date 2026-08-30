@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { X, CheckCircle2, Circle, Terminal, Cpu } from 'lucide-react';
 import { calculateWordScore } from '../utils/dictionary';
 import { SubmittedWord } from '../types/game';
 
@@ -22,10 +21,9 @@ export const DictionaryModal: React.FC<DictionaryModalProps> = ({
 
   if (!isOpen) return null;
 
-  const foundSet = new Set(playerWords.map(w => w.word.toUpperCase()));
+  const foundSet = new Set(playerWords.map((w) => w.word.toUpperCase()));
   const totalScorePossible = allValidWords.reduce((sum, w) => sum + calculateWordScore(w), 0);
   const playerTotalScore = playerWords.reduce((sum, w) => sum + w.score, 0);
-  const pctFound = Math.round((playerWords.length / Math.max(1, allValidWords.length)) * 100);
 
   // Group words by length
   const grouped: Record<number, string[]> = {};
@@ -40,53 +38,51 @@ export const DictionaryModal: React.FC<DictionaryModalProps> = ({
     .sort((a, b) => b - a);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xs font-mono">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/75">
       <div
         id="dictionary-modal"
-        className="relative w-full max-w-lg bg-[#040e07] border-2 border-[#00ff66]/60 rounded-2xl shadow-[0_0_40px_rgba(0,255,102,0.25)] p-4 sm:p-6 flex flex-col max-h-[90vh] text-emerald-100 overflow-hidden"
+        className="w-full max-w-sm border-2 border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-bg-light,#9bbc0f)] p-3 text-[var(--lcd-darkest,#0f380f)] font-['Press_Start_2P',monospace] shadow-[4px_4px_0_var(--lcd-darkest,#0f380f)] flex flex-col max-h-[85vh]"
       >
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-[#00ff66]/20">
+        <div className="flex items-center justify-between pb-1.5 border-b-2 border-[var(--lcd-darkest,#0f380f)] text-[8px]">
           <div>
-            <h3 className="text-base sm:text-lg font-['Orbitron',monospace] font-black text-[#00ff66] flex items-center gap-2">
-              <Terminal className="w-4 h-4 text-[#00ff66]" />
-              <span>PAYLOAD DICTIONARY: <span className="text-[#00ffcc] tracking-widest">{rootWord}</span></span>
-            </h3>
-            <p className="text-xs text-emerald-400 font-mono mt-0.5">
-              DECRYPTED: {playerWords.length}/{allValidWords.length} ({pctFound}%) • YIELD: {playerTotalScore}/{totalScorePossible}b
-            </p>
+            <span className="font-bold">DEX: {rootWord}</span>
+            <div className="text-[6px] text-[var(--lcd-dark,#306230)]">
+              {playerWords.length}/{allValidWords.length} WORDS ({playerTotalScore}/{totalScorePossible}P)
+            </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="w-7 h-7 rounded-lg bg-black hover:bg-emerald-950/80 text-emerald-400 hover:text-white flex items-center justify-center transition border border-[#00ff66]/40 cursor-pointer"
+            className="px-1.5 py-0.5 border border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-bg,#8bac0f)] cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            X
           </button>
         </div>
 
-        {/* Filter tabs */}
-        <div className="flex items-center gap-2 my-3">
-          {(['all', 'missed', 'found'] as const).map(f => (
+        {/* Filter buttons */}
+        <div className="grid grid-cols-3 gap-1 my-2 text-[7px]">
+          {(['all', 'missed', 'found'] as const).map((f) => (
             <button
               key={f}
+              type="button"
               onClick={() => setSelectedFilter(f)}
-              className={`
-                px-3 py-1 text-xs font-bold font-mono rounded-lg uppercase tracking-wider transition cursor-pointer border
-                ${selectedFilter === f
-                  ? 'bg-[#00ff66] text-black border-[#00ff66] shadow-[0_0_10px_rgba(0,255,102,0.4)]'
-                  : 'bg-black text-emerald-500 border-[#00ff66]/30 hover:border-[#00ff66]/70'}
-              `}
+              className={`py-1 border border-[var(--lcd-darkest,#0f380f)] cursor-pointer uppercase ${
+                selectedFilter === f
+                  ? 'bg-[var(--lcd-darkest,#0f380f)] text-[var(--lcd-bg-light,#9bbc0f)]'
+                  : 'bg-[var(--lcd-bg,#8bac0f)]'
+              }`}
             >
-              {f} {f === 'found' ? `(${playerWords.length})` : f === 'missed' ? `(${allValidWords.length - playerWords.length})` : `(${allValidWords.length})`}
+              {f}
             </button>
           ))}
         </div>
 
-        {/* Word Lists by Length */}
-        <div className="flex-1 overflow-y-auto space-y-4 pr-1 custom-matrix-scroll">
-          {lengths.map(len => {
+        {/* Word Lists */}
+        <div className="flex-1 overflow-y-auto space-y-2 pr-1 gb-scroll max-h-[220px]">
+          {lengths.map((len) => {
             const wordsInLen = grouped[len] || [];
-            const filteredWords = wordsInLen.filter(w => {
+            const filteredWords = wordsInLen.filter((w) => {
               const isFound = foundSet.has(w);
               if (selectedFilter === 'found') return isFound;
               if (selectedFilter === 'missed') return !isFound;
@@ -96,31 +92,25 @@ export const DictionaryModal: React.FC<DictionaryModalProps> = ({
             if (filteredWords.length === 0) return null;
 
             return (
-              <div key={`len-${len}`} className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs font-bold text-emerald-400 px-1 border-b border-[#00ff66]/20 pb-1">
-                  <span>{len}-BYTE SEQUENCES (+{calculateWordScore('A'.repeat(len))}b)</span>
-                  <span className="font-mono text-emerald-500">{filteredWords.length} entries</span>
+              <div key={`len-${len}`} className="space-y-1">
+                <div className="text-[7px] text-[var(--lcd-dark,#306230)] border-b border-[var(--lcd-dark,#306230)]/40 pb-0.5">
+                  {len}-LETTER WORDS ({filteredWords.length})
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                  {filteredWords.map(word => {
+                <div className="grid grid-cols-2 gap-1 text-[7px]">
+                  {filteredWords.map((word) => {
                     const isFound = foundSet.has(word);
                     return (
                       <div
                         key={word}
-                        className={`
-                          flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-bold font-mono border transition
-                          ${isFound
-                            ? 'bg-[#002e12] border-[#00ff66] text-[#00ff66] shadow-[0_0_8px_rgba(0,255,102,0.2)]'
-                            : 'bg-black/70 border-[#00ff66]/20 text-emerald-700'}
-                        `}
+                        className={`px-1 py-0.5 border flex items-center justify-between ${
+                          isFound
+                            ? 'border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-darkest,#0f380f)] text-[var(--lcd-bg-light,#9bbc0f)]'
+                            : 'border-[var(--lcd-dark,#306230)]/50 bg-[var(--lcd-bg,#8bac0f)] opacity-70'
+                        }`}
                       >
-                        <span className="tracking-wider">{word}</span>
-                        {isFound ? (
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#00ff66] shrink-0" />
-                        ) : (
-                          <Circle className="w-3.5 h-3.5 text-emerald-950 shrink-0" />
-                        )}
+                        <span>{word}</span>
+                        <span>{isFound ? '✓' : '-'}</span>
                       </div>
                     );
                   })}
@@ -131,10 +121,11 @@ export const DictionaryModal: React.FC<DictionaryModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="pt-3 mt-2 border-t border-[#00ff66]/20 flex justify-end">
+        <div className="pt-2 border-t-2 border-[var(--lcd-darkest,#0f380f)] flex justify-end">
           <button
+            type="button"
             onClick={onClose}
-            className="px-4 py-2 bg-[#00ff66] hover:bg-[#55ff99] text-black font-['Orbitron',monospace] text-xs font-bold rounded-lg shadow-[0_0_12px_#00ff66] transition cursor-pointer"
+            className="w-full py-1.5 border-2 border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-darkest,#0f380f)] text-[var(--lcd-bg-light,#9bbc0f)] text-[8px] font-bold cursor-pointer"
           >
             DISMISS
           </button>
@@ -143,4 +134,3 @@ export const DictionaryModal: React.FC<DictionaryModalProps> = ({
     </div>
   );
 };
-
