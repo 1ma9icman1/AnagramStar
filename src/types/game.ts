@@ -13,6 +13,8 @@ export interface SubmittedWord {
 
 export type GameState = 'lobby' | 'playing' | 'round_over' | 'results';
 
+export type AppSkin = 'gameboy' | 'cyber';
+
 export type OpponentType = 'bot' | 'friend_async' | 'local_pass_play' | 'solo';
 
 export interface Opponent {

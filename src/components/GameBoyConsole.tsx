@@ -12,6 +12,7 @@ interface GameBoyConsoleProps {
   onStartPress?: () => void;
   currentPalette?: LcdPalette;
   onPaletteChange?: (palette: LcdPalette) => void;
+  onOpenSkinSelect?: () => void;
 }
 
 export const GameBoyConsole: React.FC<GameBoyConsoleProps> = ({
@@ -23,6 +24,7 @@ export const GameBoyConsole: React.FC<GameBoyConsoleProps> = ({
   onStartPress,
   currentPalette = 'dmg',
   onPaletteChange,
+  onOpenSkinSelect,
 }) => {
   const [isPoweredOn, setIsPoweredOn] = useState(true);
   const [activeButton, setActiveButton] = useState<string | null>(null);
@@ -62,8 +64,8 @@ export const GameBoyConsole: React.FC<GameBoyConsoleProps> = ({
 
   return (
     <div className="min-h-screen bg-[#141517] flex flex-col items-center justify-center p-2 sm:p-4 md:p-6 select-none font-['Silkscreen',sans-serif]">
-      {/* Top Power Switch & Cartridge Ridge */}
-      <div className="w-full max-w-[440px] flex items-center justify-between px-6 pb-1 text-[9px] font-mono text-zinc-500">
+      {/* Top Power Switch, Skin Switcher & Cartridge Ridge */}
+      <div className="w-full max-w-[440px] flex items-center justify-between px-3 sm:px-6 pb-1 text-[9px] font-mono text-zinc-500 gap-2">
         <div className="flex items-center gap-2">
           <span className="text-[8px] tracking-wider uppercase font-bold text-zinc-400">◄ OFF • ON ►</span>
           <button
@@ -82,16 +84,35 @@ export const GameBoyConsole: React.FC<GameBoyConsoleProps> = ({
           </button>
         </div>
 
-        {/* Palette cycler */}
-        <button
-          type="button"
-          onClick={cyclePalette}
-          className="text-[9px] bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-2 py-0.5 rounded border border-zinc-600 cursor-pointer flex items-center gap-1"
-          title="Switch LCD Screen Palette"
-        >
-          <span>LCD:</span>
-          <span className="text-amber-300 font-bold uppercase">{currentPalette}</span>
-        </button>
+        <div className="flex items-center gap-1.5">
+          {/* Skin selector */}
+          {onOpenSkinSelect && (
+            <button
+              type="button"
+              onClick={() => {
+                sound.playButtonClick();
+                onOpenSkinSelect();
+              }}
+              className="text-[8px] bg-zinc-800 hover:bg-zinc-700 text-emerald-400 px-1.5 py-0.5 rounded border border-zinc-600 cursor-pointer flex items-center gap-1"
+              title="Change Theme Skin"
+            >
+              <span>🎨</span>
+              <span className="hidden sm:inline">SKIN:</span>
+              <span className="font-bold uppercase">GB</span>
+            </button>
+          )}
+
+          {/* Palette cycler */}
+          <button
+            type="button"
+            onClick={cyclePalette}
+            className="text-[8px] bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-1.5 py-0.5 rounded border border-zinc-600 cursor-pointer flex items-center gap-1"
+            title="Switch LCD Screen Palette"
+          >
+            <span>LCD:</span>
+            <span className="text-amber-300 font-bold uppercase">{currentPalette}</span>
+          </button>
+        </div>
       </div>
 
       {/* Main Game Boy DMG Console Body */}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { AppSkin } from '../types/game';
 
 interface ScoreBannerProps {
   wordsCount: number;
@@ -9,6 +10,7 @@ interface ScoreBannerProps {
   isOpponent?: boolean;
   compact?: boolean;
   id?: string;
+  skin?: AppSkin;
 }
 
 export const ScoreBanner: React.FC<ScoreBannerProps> = ({
@@ -19,7 +21,46 @@ export const ScoreBanner: React.FC<ScoreBannerProps> = ({
   isOpponent = false,
   compact = false,
   id,
+  skin = 'gameboy',
 }) => {
+  const isCyber = skin === 'cyber';
+
+  if (isCyber) {
+    return (
+      <div
+        id={id || `cyber-hud-banner-${isOpponent ? 'opp' : 'user'}`}
+        className={`
+          matrix-hud-banner rounded-lg
+          ${compact ? 'px-3 py-1.5' : 'px-4 py-2.5 max-w-sm w-full mx-auto'}
+          flex items-center justify-between select-none
+        `}
+      >
+        {/* Player info */}
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 rounded border border-emerald-400 bg-black/70 flex items-center justify-center text-base shrink-0 shadow-[0_0_8px_rgba(0,255,102,0.3)]">
+            {avatarEmoji}
+          </div>
+          <div className="flex flex-col min-w-0">
+            <div className="text-xs font-mono font-bold text-emerald-300 truncate max-w-[120px]">
+              {playerName || (isOpponent ? 'OPPONENT' : 'OPERATOR')}
+            </div>
+            <div className="text-[9px] font-mono text-emerald-500">
+              WORDS: {isOpponent && score === -1 ? '??' : wordsCount}
+            </div>
+          </div>
+        </div>
+
+        {/* Score */}
+        <div className="text-right shrink-0">
+          <div className="text-[9px] font-mono text-emerald-400">SCORE</div>
+          <div className="text-sm font-mono font-black text-white matrix-glow-text">
+            {isOpponent && score === -1 ? '????' : score.toLocaleString()}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       id={id || `gb-hud-banner-${isOpponent ? 'opp' : 'user'}`}
@@ -54,5 +95,6 @@ export const ScoreBanner: React.FC<ScoreBannerProps> = ({
     </div>
   );
 };
+
 
 

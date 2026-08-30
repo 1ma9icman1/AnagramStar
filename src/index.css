@@ -1,6 +1,10 @@
 @import "tailwindcss";
 
 @layer utilities {
+  /* =========================================================
+     1. GAME BOY DMG CONSOLE STYLES
+     ========================================================= */
+
   /* Game Boy DMG Console Shell Base */
   .gb-shell {
     background: #d8d6ce;
@@ -209,6 +213,72 @@
       0 0 12px rgba(255, 42, 42, 0.8),
       inset 0 1px 1px #ff9999;
   }
+
+  /* =========================================================
+     2. ORIGINAL CYBER MATRIX THEME STYLES
+     ========================================================= */
+
+  /* Cyber Holographic Tile */
+  .matrix-tile {
+    background: linear-gradient(180deg, #091a10 0%, #030805 100%);
+    border: 1.5px solid #00ff66;
+    color: #00ff66;
+    box-shadow: 
+      0 0 15px rgba(0, 255, 102, 0.3),
+      inset 0 0 10px rgba(0, 255, 102, 0.15),
+      0 4px 6px rgba(0, 0, 0, 0.8);
+    text-shadow: 0 0 8px #00ff66;
+  }
+
+  .matrix-tile:hover:not(:disabled) {
+    background: linear-gradient(180deg, #0f301d 0%, #06170c 100%);
+    border-color: #00ffcc;
+    color: #ffffff;
+    box-shadow: 
+      0 0 25px rgba(0, 255, 204, 0.6),
+      inset 0 0 15px rgba(0, 255, 204, 0.3);
+    text-shadow: 0 0 12px #00ffcc;
+  }
+
+  .matrix-tile:active:not(:disabled) {
+    transform: scale(0.95);
+    box-shadow: 0 0 10px rgba(0, 255, 102, 0.5);
+  }
+
+  .matrix-tile-mini {
+    background: #040d07;
+    border: 1px solid #00ff66;
+    color: #00ff66;
+    box-shadow: 0 0 8px rgba(0, 255, 102, 0.2);
+  }
+
+  /* Cyber Slot Socket */
+  .matrix-slot-well {
+    background: rgba(0, 255, 102, 0.04);
+    border: 1.5px dashed rgba(0, 255, 102, 0.35);
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+  }
+
+  /* Cyber Glass Panel */
+  .matrix-panel {
+    background: rgba(5, 13, 8, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(0, 255, 102, 0.3);
+    box-shadow: 
+      0 0 25px rgba(0, 255, 102, 0.1),
+      inset 0 0 15px rgba(0, 255, 102, 0.05);
+  }
+
+  /* Glowing Text */
+  .matrix-glow-text {
+    text-shadow: 0 0 10px #00ff66, 0 0 20px rgba(0, 255, 102, 0.4);
+  }
+
+  .matrix-hud-banner {
+    background: linear-gradient(90deg, rgba(0, 255, 102, 0.08) 0%, rgba(5, 15, 9, 0.8) 50%, rgba(0, 255, 102, 0.08) 100%);
+    border: 1.5px solid rgba(0, 255, 102, 0.4);
+    box-shadow: 0 0 20px rgba(0, 255, 102, 0.15);
+  }
 }
 
 /* 8-bit Shake */
@@ -244,5 +314,6 @@
 .gb-scroll::-webkit-scrollbar-thumb {
   background: var(--lcd-darkest, #0f380f);
 }
+
 
 

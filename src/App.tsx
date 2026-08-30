@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameBoyConsole, LcdPalette } from './components/GameBoyConsole';
-import { GameBoard } from './components/GameBoard';
-import { ResultsView } from './components/ResultsView';
-import { LobbyView } from './components/LobbyView';
+import { CyberConsole } from './components/CyberConsole';
+import { SkinSelectModal } from './components/SkinSelectModal';
+import { GameBoard, GameBoardHandle } from './components/GameBoard';
+import { ResultsView, ResultsViewHandle } from './components/ResultsView';
+import { LobbyView, LobbyViewHandle } from './components/LobbyView';
 import { ProfileModal } from './components/ProfileModal';
 import { DictionaryModal } from './components/DictionaryModal';
 import { DiscordInviteModal } from './components/DiscordInviteModal';
@@ -12,6 +14,7 @@ import {
   PlayerProfile,
   GameSettings,
   Opponent,
+  AppSkin,
 } from './types/game';
 import { getRandomPuzzle, findAllValidAnagrams, calculateWordScore } from './utils/dictionary';
 import {
@@ -25,7 +28,18 @@ import { initDiscordSdk } from './utils/discordSdk';
 import { sound } from './utils/sound';
 
 export default function App() {
-  // LCD Palette selection ('dmg', 'pocket', 'light', 'gbc')
+  // Active Skin Selection ('gameboy' | 'cyber')
+  const [currentSkin, setCurrentSkin] = useState<AppSkin>(() => {
+    const saved = localStorage.getItem('anagram_skin_preference');
+    return (saved === 'gameboy' || saved === 'cyber') ? saved : 'gameboy';
+  });
+
+  // Modal to select skin on load or via switcher
+  const [isSkinModalOpen, setIsSkinModalOpen] = useState<boolean>(() => {
+    return !localStorage.getItem('anagram_skin_preference');
+  });
+
+  // LCD Palette selection for Game Boy ('dmg', 'pocket', 'light', 'gbc')
   const [currentPalette, setCurrentPalette] = useState<LcdPalette>('dmg');
 
   // Saved profile & settings
@@ -37,6 +51,11 @@ export default function App() {
     hapticFeedback: true,
     vibration: true,
   });
+
+  // Component references for console physical button dispatch
+  const gameBoardRef = useRef<GameBoardHandle>(null);
+  const lobbyViewRef = useRef<LobbyViewHandle>(null);
+  const resultsViewRef = useRef<ResultsViewHandle>(null);
 
   // Flow states
   const [gameState, setGameState] = useState<GameState>('lobby');
@@ -81,6 +100,7 @@ export default function App() {
   const [isDictionaryModalOpen, setIsDictionaryModalOpen] = useState(false);
   const [isDiscordInviteModalOpen, setIsDiscordInviteModalOpen] = useState(false);
 
+
   // Check URL challenge & Initialize Discord SDK on mount
   useEffect(() => {
     initDiscordSdk().then((res) => {
@@ -123,6 +143,17 @@ export default function App() {
       });
     }
   }, []);
+
+  // Skin selection confirmed
+  const handleSelectSkin = (skin: AppSkin, remember: boolean) => {
+    setCurrentSkin(skin);
+    if (remember) {
+      localStorage.setItem('anagram_skin_preference', skin);
+    } else {
+      localStorage.removeItem('anagram_skin_preference');
+    }
+    setIsSkinModalOpen(false);
+  };
 
   // Save profile updates
   const handleSaveProfile = (updated: PlayerProfile) => {
@@ -339,12 +370,20 @@ export default function App() {
 
   // Physical Game Boy Button Action handlers
   const handleConsoleAPress = () => {
-    if (gameState === 'lobby') {
-      handleStartSolo();
+    if (gameState === 'playing') {
+      gameBoardRef.current?.handleAPress();
+    } else if (gameState === 'lobby') {
+      if (lobbyViewRef.current) {
+        lobbyViewRef.current.handleAPress();
+      } else {
+        handleStartSolo();
+      }
     } else if (gameState === 'round_over') {
       setGameState('playing');
     } else if (gameState === 'results') {
-      if (passPlayState.isPassPlay) {
+      if (resultsViewRef.current) {
+        resultsViewRef.current.handleAPress();
+      } else if (passPlayState.isPassPlay) {
         handleStartPassPlay(passPlayState.p1Name, passPlayState.p2Name);
       } else {
         handleStartSolo();
@@ -353,32 +392,74 @@ export default function App() {
   };
 
   const handleConsoleBPress = () => {
-    if (gameState === 'playing' || gameState === 'results' || gameState === 'round_over') {
+    if (gameState === 'playing') {
+      gameBoardRef.current?.handleBPress();
+    } else if (gameState === 'lobby') {
+      lobbyViewRef.current?.handleBPress();
+    } else if (gameState === 'round_over') {
       setGameState('lobby');
+    } else if (gameState === 'results') {
+      if (resultsViewRef.current) {
+        resultsViewRef.current.handleBPress();
+      } else {
+        setGameState('lobby');
+      }
+    }
+  };
+
+  const handleConsoleSelectPress = () => {
+    if (gameState === 'playing') {
+      gameBoardRef.current?.handleSelectPress();
+    } else if (gameState === 'lobby') {
+      lobbyViewRef.current?.handleSelectPress();
+    } else if (gameState === 'results') {
+      if (resultsViewRef.current) {
+        resultsViewRef.current.handleSelectPress();
+      } else {
+        setIsDictionaryModalOpen(true);
+      }
     }
   };
 
   const handleConsoleStartPress = () => {
-    if (gameState === 'lobby') {
-      handleStartSolo();
+    if (gameState === 'playing') {
+      gameBoardRef.current?.handleStartPress();
+    } else if (gameState === 'lobby') {
+      if (lobbyViewRef.current) {
+        lobbyViewRef.current.handleStartPress();
+      } else {
+        handleStartSolo();
+      }
     } else if (gameState === 'round_over') {
       setGameState('playing');
     } else if (gameState === 'results') {
-      handleStartSolo();
+      if (resultsViewRef.current) {
+        resultsViewRef.current.handleStartPress();
+      } else if (passPlayState.isPassPlay) {
+        handleStartPassPlay(passPlayState.p1Name, passPlayState.p2Name);
+      } else {
+        handleStartSolo();
+      }
     }
   };
 
-  return (
-    <GameBoyConsole
-      currentPalette={currentPalette}
-      onPaletteChange={setCurrentPalette}
-      onAPress={handleConsoleAPress}
-      onBPress={handleConsoleBPress}
-      onStartPress={handleConsoleStartPress}
-    >
+  const handleConsoleDpadPress = (dir: 'up' | 'down' | 'left' | 'right') => {
+    if (gameState === 'playing') {
+      gameBoardRef.current?.handleDpadPress(dir);
+    } else if (gameState === 'lobby') {
+      lobbyViewRef.current?.handleDpadPress(dir);
+    } else if (gameState === 'results') {
+      resultsViewRef.current?.handleDpadPress(dir);
+    }
+  };
+
+  // Shared Inner View Content
+  const renderInnerContent = () => (
+    <>
       {/* 1. Lobby View */}
       {gameState === 'lobby' && (
         <LobbyView
+          ref={lobbyViewRef}
           playerProfile={profile}
           settings={settings}
           incomingChallenge={incomingChallenge}
@@ -390,12 +471,14 @@ export default function App() {
           onOpenProfile={() => setIsProfileModalOpen(true)}
           onUpdateSettings={setSettings}
           onLoadChallenge={handleLoadChallenge}
+          skin={currentSkin}
         />
       )}
 
       {/* 2. Active Game Board */}
       {gameState === 'playing' && currentPuzzle && (
         <GameBoard
+          ref={gameBoardRef}
           key={passPlayState.isPassPlay ? `p${passPlayState.turn}-${currentPuzzle.root}` : `solo-${currentPuzzle.root}`}
           scrambledLetters={currentPuzzle.scrambled}
           playerProfile={
@@ -418,34 +501,61 @@ export default function App() {
           settings={settings}
           onRoundComplete={handleRoundComplete}
           onExitToLobby={() => setGameState('lobby')}
+          skin={currentSkin}
         />
       )}
 
       {/* 3. Pass & Play Intermission */}
       {gameState === 'round_over' && passPlayState.isPassPlay && passPlayState.turn === 2 && (
-        <div className="w-full h-full flex flex-col justify-between p-3 select-none text-[var(--lcd-darkest,#0f380f)] font-['Press_Start_2P',monospace] text-center">
-          <div className="text-[8px] font-bold border-b-2 border-[var(--lcd-darkest,#0f380f)] pb-1">
-            PLAYER HANDOFF
+        <div
+          className={`w-full h-full flex flex-col justify-between p-3 select-none text-center ${
+            currentSkin === 'cyber'
+              ? 'text-emerald-100 font-mono'
+              : "text-[var(--lcd-darkest,#0f380f)] font-['Press_Start_2P',monospace]"
+          }`}
+        >
+          <div
+            className={`text-[8px] font-bold border-b-2 pb-1 ${
+              currentSkin === 'cyber' ? 'border-emerald-500/40 text-emerald-400' : 'border-[var(--lcd-darkest,#0f380f)]'
+            }`}
+          >
+            PLAYER HANDOFF MATRIX
           </div>
 
           <div className="my-auto flex flex-col items-center gap-2">
-            <div className="w-10 h-10 border-2 border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-bg,#8bac0f)] flex items-center justify-center text-xl animate-bounce">
+            <div
+              className={`w-12 h-12 border-2 flex items-center justify-center text-2xl animate-bounce rounded ${
+                currentSkin === 'cyber'
+                  ? 'border-emerald-400 bg-emerald-950/60 shadow-[0_0_12px_#00ff66]'
+                  : 'border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-bg,#8bac0f)]'
+              }`}
+            >
               🎮
             </div>
             <div className="text-[8px] leading-relaxed">
               <span className="font-bold">{passPlayState.p1Name}</span> SCORED:
-              <div className="text-sm font-black my-1">{passPlayState.p1Score} PTS</div>
+              <div className={`text-base font-black my-1 ${currentSkin === 'cyber' ? 'text-[#00ff66]' : ''}`}>
+                {passPlayState.p1Score} PTS
+              </div>
               ({passPlayState.p1Words.length} WORDS)
             </div>
-            <div className="text-[7px] text-[var(--lcd-dark,#306230)] px-2">
-              PASS CONSOLE TO <span className="font-bold text-[var(--lcd-darkest,#0f380f)]">{passPlayState.p2Name}</span>!
+            <div
+              className={`text-[7px] px-2 ${
+                currentSkin === 'cyber' ? 'text-emerald-400/80' : 'text-[var(--lcd-dark,#306230)]'
+              }`}
+            >
+              PASS DEVICE TO <span className="font-bold">{passPlayState.p2Name}</span>!
             </div>
           </div>
 
           <button
             type="button"
             onClick={() => setGameState('playing')}
-            className="w-full py-2.5 border-2 border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-darkest,#0f380f)] text-[var(--lcd-bg-light,#9bbc0f)] font-bold text-[8px] shadow-[2px_2px_0_var(--lcd-darkest,#0f380f)] cursor-pointer active:scale-95"
+            className={`w-full py-2.5 border-2 font-bold text-[8px] cursor-pointer active:scale-95 transition-all rounded ${
+              currentSkin === 'cyber'
+                ? 'border-[#00ff66] bg-[#00ff66] text-black shadow-[0_0_15px_#00ff66] hover:bg-[#33ff88]'
+                : 'border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-darkest,#0f380f)] text-[var(--lcd-bg-light,#9bbc0f)] shadow-[2px_2px_0_var(--lcd-darkest,#0f380f)]'
+            }`}
           >
             ► START {passPlayState.p2Name}'S TURN
           </button>
@@ -455,6 +565,7 @@ export default function App() {
       {/* 4. Results View */}
       {gameState === 'results' && currentPuzzle && (
         <ResultsView
+          ref={resultsViewRef}
           playerProfile={profile}
           playerWords={playerWords}
           playerScore={playerScore}
@@ -473,10 +584,44 @@ export default function App() {
               setOpponent((prev) => (prev ? { ...prev, isReady: true } : null));
             }
           }}
+          skin={currentSkin}
         />
       )}
+    </>
+  );
 
-      {/* Modals */}
+  return (
+    <>
+      {/* Skin Selection Modal on Load or Trigger */}
+      <SkinSelectModal
+        isOpen={isSkinModalOpen}
+        currentSkin={currentSkin}
+        onSelectSkin={handleSelectSkin}
+        onClose={() => setIsSkinModalOpen(false)}
+        canClose={true}
+      />
+
+      {/* Primary Layout Wrapper depending on skin */}
+      {currentSkin === 'gameboy' ? (
+        <GameBoyConsole
+          currentPalette={currentPalette}
+          onPaletteChange={setCurrentPalette}
+          onAPress={handleConsoleAPress}
+          onBPress={handleConsoleBPress}
+          onSelectPress={handleConsoleSelectPress}
+          onStartPress={handleConsoleStartPress}
+          onDpadPress={handleConsoleDpadPress}
+          onOpenSkinSelect={() => setIsSkinModalOpen(true)}
+        >
+          {renderInnerContent()}
+        </GameBoyConsole>
+      ) : (
+        <CyberConsole onOpenSkinSelect={() => setIsSkinModalOpen(true)}>
+          {renderInnerContent()}
+        </CyberConsole>
+      )}
+
+      {/* Common Modals */}
       <DiscordInviteModal
         isOpen={isDiscordInviteModalOpen}
         onClose={() => setIsDiscordInviteModalOpen(false)}
@@ -502,6 +647,6 @@ export default function App() {
           onClose={() => setIsDictionaryModalOpen(false)}
         />
       )}
-    </GameBoyConsole>
+    </>
   );
 }
