@@ -465,6 +465,53 @@ class SoundEngine {
       });
     } catch {}
   }
+  // Hacker Cyber Unlock Synth Arpeggio & Matrix Beep Sequence
+  public playHackerUnlock() {
+    if (!this.enabled) return;
+    try {
+      this.initCtx();
+      if (!this.ctx) return;
+
+      const notes = [220, 330, 440, 554.37, 659.25, 880, 1108.73, 1318.51, 1760];
+      notes.forEach((freq, idx) => {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sawtooth';
+        const startTime = this.ctx.currentTime + idx * 0.045;
+        osc.frequency.setValueAtTime(freq, startTime);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.05, startTime + 0.04);
+
+        gain.gain.setValueAtTime(0.2, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.09);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(startTime);
+        osc.stop(startTime + 0.1);
+      });
+
+      // Final matrix bass pulse & shimmer
+      setTimeout(() => {
+        if (!this.ctx) return;
+        const bassOsc = this.ctx.createOscillator();
+        const bassGain = this.ctx.createGain();
+        bassOsc.type = 'triangle';
+        bassOsc.frequency.setValueAtTime(110, this.ctx.currentTime);
+        bassOsc.frequency.exponentialRampToValueAtTime(55, this.ctx.currentTime + 0.4);
+
+        bassGain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+        bassGain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.4);
+
+        bassOsc.connect(bassGain);
+        bassGain.connect(this.ctx.destination);
+        bassOsc.start();
+        bassOsc.stop(this.ctx.currentTime + 0.45);
+      }, 400);
+    } catch {}
+  }
 }
 
 export const sound = new SoundEngine();

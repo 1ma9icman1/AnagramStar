@@ -26,6 +26,8 @@ interface LobbyViewProps {
   onOpenDiscordInvite: () => void;
   onAcceptIncomingChallenge?: () => void;
   onOpenProfile: () => void;
+  onOpenSecretMenu?: () => void;
+  isMa9icUnlocked?: boolean;
   onUpdateSettings: (settings: GameSettings) => void;
   onLoadChallenge: (code: string) => void;
   skin?: AppSkin;
@@ -41,6 +43,8 @@ export const LobbyView = forwardRef<LobbyViewHandle, LobbyViewProps>(({
   onOpenDiscordInvite,
   onAcceptIncomingChallenge,
   onOpenProfile,
+  onOpenSecretMenu,
+  isMa9icUnlocked = false,
   onUpdateSettings,
   onLoadChallenge,
   skin = 'gameboy',
@@ -162,17 +166,39 @@ export const LobbyView = forwardRef<LobbyViewHandle, LobbyViewProps>(({
           </div>
         </button>
 
-        <button
-          type="button"
-          onClick={onOpenProfile}
-          className={`px-2 py-1 border cursor-pointer text-[8px] active:scale-95 transition-all ${
-            isCyber
-              ? 'border-emerald-500/60 bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300'
-              : 'border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-bg-light,#9bbc0f)] hover:bg-[var(--lcd-dark,#306230)] hover:text-[var(--lcd-bg-light,#9bbc0f)]'
-          }`}
-        >
-          [PROFILE]
-        </button>
+        <div className="flex items-center gap-1.5">
+          {onOpenSecretMenu && (
+            <button
+              type="button"
+              onClick={() => {
+                sound.playButtonClick();
+                onOpenSecretMenu();
+              }}
+              className={`px-1.5 py-1 border cursor-pointer text-[7px] sm:text-[8px] active:scale-95 transition-all rounded-xs font-bold ${
+                isMa9icUnlocked
+                  ? 'border-[#00ff66] bg-[#00ff66]/20 text-[#00ff66] shadow-[0_0_8px_rgba(0,255,102,0.4)] animate-pulse'
+                  : isCyber
+                  ? 'border-emerald-600 bg-emerald-950/80 text-emerald-400 hover:bg-emerald-900'
+                  : 'border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-bg,#8bac0f)] text-[var(--lcd-darkest,#0f380f)] hover:bg-[var(--lcd-dark,#306230)] hover:text-[var(--lcd-bg-light,#9bbc0f)]'
+              }`}
+              title="Open Secret Passphrase Menu"
+            >
+              {isMa9icUnlocked ? '★ MA9IC' : '🔑 SECRET'}
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={onOpenProfile}
+            className={`px-2 py-1 border cursor-pointer text-[8px] active:scale-95 transition-all ${
+              isCyber
+                ? 'border-emerald-500/60 bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300'
+                : 'border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-bg-light,#9bbc0f)] hover:bg-[var(--lcd-dark,#306230)] hover:text-[var(--lcd-bg-light,#9bbc0f)]'
+            }`}
+          >
+            [PROFILE]
+          </button>
+        </div>
       </div>
 
       {/* Main Center Area */}
@@ -514,6 +540,29 @@ export const LobbyView = forwardRef<LobbyViewHandle, LobbyViewProps>(({
                 ))}
               </div>
             </div>
+
+            {/* Secret Passcode Screen Trigger */}
+            {onOpenSecretMenu && (
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    sound.playButtonClick();
+                    onOpenSecretMenu();
+                  }}
+                  className={`w-full py-1.5 border font-bold text-[7px] flex items-center justify-center gap-1 cursor-pointer active:scale-95 transition-all rounded-xs ${
+                    isMa9icUnlocked
+                      ? 'border-[#00ff66] bg-[#00ff66]/20 text-[#00ff66] shadow-[0_0_10px_rgba(0,255,102,0.3)]'
+                      : isCyber
+                      ? 'border-emerald-700 bg-emerald-950/60 text-emerald-300 hover:bg-emerald-900/60'
+                      : 'border-[var(--lcd-darkest,#0f380f)] bg-[var(--lcd-bg-light,#9bbc0f)] text-[var(--lcd-darkest,#0f380f)] hover:bg-[var(--lcd-dark,#306230)] hover:text-[var(--lcd-bg-light,#9bbc0f)]'
+                  }`}
+                >
+                  <span>🔑</span>
+                  <span>{isMa9icUnlocked ? '★ SECRET ROOT MENU (MA9IC UNLOCKED)' : 'ENTER SECRET PASSPHRASE...'}</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -525,6 +574,19 @@ export const LobbyView = forwardRef<LobbyViewHandle, LobbyViewProps>(({
         }`}
       >
         <span>STATUS: READY</span>
+        {onOpenSecretMenu && (
+          <button
+            type="button"
+            onClick={() => {
+              sound.playButtonClick();
+              onOpenSecretMenu();
+            }}
+            className="hover:underline cursor-pointer opacity-80 hover:opacity-100 flex items-center gap-1"
+          >
+            <span>🔒</span>
+            <span>{isMa9icUnlocked ? 'ROOT: MA9IC' : 'SECRET MENU'}</span>
+          </button>
+        )}
         <span>HIGH SCORE: {playerProfile.highestScore}</span>
       </div>
     </div>

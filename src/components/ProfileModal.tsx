@@ -6,18 +6,26 @@ interface ProfileModalProps {
   isOpen: boolean;
   onSave: (updated: PlayerProfile) => void;
   onClose: () => void;
+  isUnlocked?: boolean;
 }
 
-const EMOJI_PRESETS = ['👾', '🕹️', '🎮', '🍄', '🐢', '⭐', '🗡️', '🛡️', '🦖', '🤖', '👑', '⚡'];
+const DEFAULT_EMOJI_PRESETS = ['👾', '🕹️', '🎮', '🍄', '🐢', '⭐', '🗡️', '🛡️', '🦖', '🤖', '👑', '⚡'];
+const SECRET_EMOJI_PRESETS = [
+  '🧙‍♂️', '🔮', '💻', '🕶️', '💀', '🔥', '💎', '🚀', '👽', '🦄', '🐱', '🎯',
+  '👾', '🕹️', '🎮', '🍄', '🐢', '⭐', '🗡️', '🛡️', '🦖', '🤖', '👑', '⚡'
+];
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({
   profile,
   isOpen,
   onSave,
   onClose,
+  isUnlocked = false,
 }) => {
   const [name, setName] = useState(profile.name);
   const [avatarEmoji, setAvatarEmoji] = useState(profile.avatarEmoji);
+
+  const emojiList = isUnlocked ? SECRET_EMOJI_PRESETS : DEFAULT_EMOJI_PRESETS;
 
   if (!isOpen) return null;
 
@@ -69,9 +77,14 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
 
           {/* Emoji Sprites */}
           <div>
-            <div className="text-[7px] text-[var(--lcd-dark,#306230)] mb-1">SPRITE ICON:</div>
-            <div className="grid grid-cols-6 gap-1 border border-[var(--lcd-darkest,#0f380f)] p-1 bg-[var(--lcd-bg,#8bac0f)]">
-              {EMOJI_PRESETS.map((emoji) => (
+            <div className="flex items-center justify-between text-[7px] text-[var(--lcd-dark,#306230)] mb-1">
+              <span>SPRITE ICON:</span>
+              {isUnlocked && (
+                <span className="text-[6px] text-emerald-600 font-bold">★ MA9IC ALL UNLOCKED</span>
+              )}
+            </div>
+            <div className="grid grid-cols-6 gap-1 border border-[var(--lcd-darkest,#0f380f)] p-1 bg-[var(--lcd-bg,#8bac0f)] max-h-32 overflow-y-auto gb-scroll">
+              {emojiList.map((emoji) => (
                 <button
                   key={emoji}
                   type="button"

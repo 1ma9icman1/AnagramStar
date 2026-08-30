@@ -9,6 +9,7 @@ import { LobbyView, LobbyViewHandle } from './components/LobbyView';
 import { ProfileModal } from './components/ProfileModal';
 import { DictionaryModal } from './components/DictionaryModal';
 import { DiscordInviteModal } from './components/DiscordInviteModal';
+import { SecretMenuModal } from './components/SecretMenuModal';
 import {
   GameState,
   SubmittedWord,
@@ -100,6 +101,36 @@ export default function App() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isDictionaryModalOpen, setIsDictionaryModalOpen] = useState(false);
   const [isDiscordInviteModalOpen, setIsDiscordInviteModalOpen] = useState(false);
+  const [isSecretModalOpen, setIsSecretModalOpen] = useState(false);
+  const [isMa9icUnlocked, setIsMa9icUnlocked] = useState<boolean>(() => {
+    return localStorage.getItem('anagram_ma9ic_unlocked') === 'true';
+  });
+
+  // Hacker Green / Ma9ic Unlock Handler
+  const handleUnlockMa9ic = useCallback(() => {
+    setIsMa9icUnlocked(true);
+    localStorage.setItem('anagram_ma9ic_unlocked', 'true');
+    setCurrentSkin('cyber');
+    localStorage.setItem('anagram_skin_preference', 'cyber');
+
+    setProfile((prev) => {
+      const updated: PlayerProfile = {
+        ...prev,
+        name: prev.name === 'PLAYER 1' || prev.name === 'Neo' ? 'MA9IC HACKER' : prev.name,
+        avatarEmoji: '🧙‍♂️',
+        highestScore: Math.max(prev.highestScore, 999999),
+        totalWordsFound: Math.max(prev.totalWordsFound, 9999),
+        gamesPlayed: Math.max(prev.gamesPlayed, 1337),
+      };
+      saveProfile(updated);
+      return updated;
+    });
+  }, []);
+
+  const handleSwitchToHackerGreen = useCallback(() => {
+    setCurrentSkin('cyber');
+    localStorage.setItem('anagram_skin_preference', 'cyber');
+  }, []);
 
 
   // Check URL challenge & Initialize Discord SDK on mount
@@ -144,6 +175,37 @@ export default function App() {
       });
     }
   }, []);
+
+  // Secret Key Sequence Listener ("ma9ic" or "`")
+  useEffect(() => {
+    let keyBuffer = '';
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // If typing in an input or textarea, don't hijack unless it's the tilde key
+      const isInput = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
+      
+      if (e.key === '`' || e.key === '~') {
+        e.preventDefault();
+        setIsSecretModalOpen(true);
+        return;
+      }
+
+      if (isInput) return;
+
+      keyBuffer += e.key.toLowerCase();
+      if (keyBuffer.length > 10) {
+        keyBuffer = keyBuffer.slice(-10);
+      }
+
+      if (keyBuffer.endsWith('ma9ic')) {
+        keyBuffer = '';
+        handleUnlockMa9ic();
+        setIsSecretModalOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleUnlockMa9ic]);
 
   // Skin selection confirmed
   const handleSelectSkin = (skin: AppSkin, remember: boolean) => {
@@ -476,6 +538,8 @@ export default function App() {
           onOpenDiscordInvite={() => setIsDiscordInviteModalOpen(true)}
           onAcceptIncomingChallenge={handleAcceptIncomingChallenge}
           onOpenProfile={() => setIsProfileModalOpen(true)}
+          onOpenSecretMenu={() => setIsSecretModalOpen(true)}
+          isMa9icUnlocked={isMa9icUnlocked}
           onUpdateSettings={setSettings}
           onLoadChallenge={handleLoadChallenge}
           skin={currentSkin}
@@ -656,6 +720,18 @@ export default function App() {
         isOpen={isProfileModalOpen}
         onSave={handleSaveProfile}
         onClose={() => setIsProfileModalOpen(false)}
+        isUnlocked={isMa9icUnlocked}
+      />
+
+      <SecretMenuModal
+        isOpen={isSecretModalOpen}
+        onClose={() => setIsSecretModalOpen(false)}
+        isUnlocked={isMa9icUnlocked}
+        onUnlockMa9ic={handleUnlockMa9ic}
+        onSwitchToHackerGreen={handleSwitchToHackerGreen}
+        playerProfile={profile}
+        onUpdateProfile={handleSaveProfile}
+        currentSkin={currentSkin}
       />
 
       {currentPuzzle && (
