@@ -36,10 +36,8 @@ export default function App() {
     return (saved === 'gameboy' || saved === 'nokia' || saved === 'cyber') ? saved : 'gameboy';
   });
 
-  // Modal to select skin on load or via switcher
-  const [isSkinModalOpen, setIsSkinModalOpen] = useState<boolean>(() => {
-    return !localStorage.getItem('anagram_skin_preference');
-  });
+  // Always show Skin Selection GUI on start / launch
+  const [isSkinModalOpen, setIsSkinModalOpen] = useState<boolean>(true);
 
   // LCD Palette selection for Game Boy ('dmg', 'pocket', 'light', 'gbc')
   const [currentPalette, setCurrentPalette] = useState<LcdPalette>('dmg');
